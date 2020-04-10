@@ -39,7 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="PathOfExileItemBases.json">
+		<None Update="src\PathOfExileItemBases.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
