@@ -50,14 +50,14 @@ namespace Parser
 
         public T AddSetting<T>(UIElement InUI) where T : UIElement
         {
-            SettingsToAdd.Add(new Guid().ToString(), InUI);
+            SettingsToAdd.Add(Guid.NewGuid().ToString(), InUI);
             return (T)InUI;
         }
 
         public T AddSetting<T>(string InName, UIElement InUI) where T : UIElement
         {
             if (string.IsNullOrEmpty(InName))
-                InName = new Guid().ToString();
+                InName = Guid.NewGuid().ToString();
 
             SettingsToAdd.Add(InName, InUI);
             return (T)SettingsToAdd[InName];

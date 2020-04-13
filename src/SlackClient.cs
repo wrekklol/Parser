@@ -3,6 +3,8 @@ using System;
 using System.Collections.Specialized;
 using System.Net;
 using System.Text;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Parser
 {
@@ -11,37 +13,77 @@ namespace Parser
         private readonly Uri AccessUrl;
         private readonly Encoding _encoding = new UTF8Encoding();
 
+        public TextBox SlackUsername { get; set; }
+
         public SlackClient(string urlWithAccessToken)
         {
             AccessUrl = new Uri(urlWithAccessToken);
+
+            Settings.OnAddSettings += OnAddSettings;
+            Settings.OnLoadSettings += OnLoadSettings;
+            Settings.OnSaveSettings += OnSaveSettings;
         }
 
-        public void PostMessage(string text, string username = null, string channel = null)
+        // Usage: Slack.PostMessage("Hello world!", "Name of the Message Poster", "#TestChannel", "YourSlackUsername");
+        public void PostMessage(string InText, string InBotUsername = null, string InChannel = null, string InAtUsername = null)
         {
-            Payload payload = new Payload()
+            Payload p = new Payload()
             {
-                Channel = channel,
-                Username = username,
-                Text = text
+                Channel = InChannel,
+                Username = InBotUsername,
+                Text = !string.IsNullOrEmpty(InAtUsername) ? $"<@{InAtUsername}> {InText}" : InText
             };
 
-            PostMessage(payload);
+            PostMessage(p);
         }
 
-        public void PostMessage(Payload payload)
+        public void PostMessage(Payload p)
         {
-            string payloadJson = JsonConvert.SerializeObject(payload);
-
-            using WebClient client = new WebClient();
-            NameValueCollection data = new NameValueCollection
+            using WebClient c = new WebClient();
+            NameValueCollection d = new NameValueCollection
             {
-                ["payload"] = payloadJson
+                ["payload"] = JsonConvert.SerializeObject(p)
             };
-
-            var response = client.UploadValues(AccessUrl, "POST", data);
 
             //The response text is usually "ok"  
-            string responseText = _encoding.GetString(response);
+            string r = _encoding.GetString(c.UploadValues(AccessUrl, "POST", d));
+        }
+
+
+
+        private void OnAddSettings(Settings InSettings)
+        {
+            InSettings.AddSetting(new Label()
+            {
+                Content = "Slack Username",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                FontWeight = FontWeights.ExtraBold,
+                FontStyle = FontStyles.Normal,
+                FontSize = 14
+            });
+            SlackUsername = InSettings.AddSetting<TextBox>("SlackUsername", new TextBox()
+            {
+                Text = "",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                TextWrapping = TextWrapping.Wrap,
+                MinWidth = 500,
+                MinHeight = 28.2033333333333
+            });
+        }
+
+        private void OnLoadSettings(Settings InSettings)
+        {
+            SlackUsername = InSettings.GetSetting<TextBox>("SlackUsername");
+            SlackUsername.Text = Environment.GetEnvironmentVariable("SlackUsername", EnvironmentVariableTarget.User); ;
+        }
+
+        private void OnSaveSettings(Settings InSettings)
+        {
+            Environment.SetEnvironmentVariable("SlackUsername", SlackUsername.Text, EnvironmentVariableTarget.User);
         }
     }
 

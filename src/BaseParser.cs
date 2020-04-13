@@ -16,8 +16,8 @@ namespace Parser
             Settings.OnSaveSettings += OnSaveSettings;
         }
 
-        public abstract void OnAddSettings(Settings InSettings);
-        public abstract void OnLoadSettings(Settings InSettings);
-        public abstract void OnSaveSettings(Settings InSettings);
+        protected abstract void OnAddSettings(Settings InSettings);
+        protected abstract void OnLoadSettings(Settings InSettings);
+        protected abstract void OnSaveSettings(Settings InSettings);
     }
 }

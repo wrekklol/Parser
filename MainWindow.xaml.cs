@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
 using Parser.StaticLibrary;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -65,17 +67,15 @@ namespace Parser
                 if (x.Key != "lines")
                     continue;
 
+                Logger.WriteLine("Started fetching currency values", true);
                 foreach (var y in x.Value.AsJEnumerable())
                 {
                     var CurrencyType = y.Value<string>("currencyTypeName");
                     var CurrencyValue = y.Value<JToken>("receive").Value<double>("value");
                     PoELogParser.CurrencyValues.Add(Enum.Parse<PathOfExileCurrency>(PathOfExileLogParser.GetRENAMETHISCurrencyName(CurrencyType), true), CurrencyValue);
-                    Console.WriteLine(Enum.Parse<PathOfExileCurrency>(PathOfExileLogParser.GetRENAMETHISCurrencyName(CurrencyType)));
+                    Logger.WriteLine($"{Enum.Parse<PathOfExileCurrency>(PathOfExileLogParser.GetRENAMETHISCurrencyName(CurrencyType))} => {CurrencyValue}");
                 }
-                Console.WriteLine(
-                    "--------------------------------------------------------------------------------------------------\n" + 
-                    "Done fetching currency values\n" +
-                    "--------------------------------------------------------------------------------------------------\n\n");
+                Logger.WriteLine("Done fetching currency values", true);
             }
         }
 
@@ -106,7 +106,8 @@ namespace Parser
                 LogList.Add(l);
 
                 if (PathOfExileTradeOffer.GetCurrencyWorth(InLogEntry.TradeOffer) >= PathOfExileLogParser.MINPRICEFORNOTIFY)
-                    Slack.PostMessage(username: "Notifier", text: InLogEntry.ToString(), channel: "#Path of Exile");
+                    Slack.PostMessage(InLogEntry.ToString(), "Notifier", Slack.SlackUsername.Text);
+                    //Slack.PostMessage(InLogEntry.ToString(), "Notifier", "#Path of Exile", Slack.SlackUsername.Text);
             }
         }
 

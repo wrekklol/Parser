@@ -35,7 +35,7 @@ namespace Parser.StaticLibrary
             double gravity, double wind, double minWait, double maxWait,
             double maxStep, double targetArea, Action OnMoveComplete = null)
         {
-            //Console.WriteLine(FormattableString.Invariant($"Start: {xs}, {ys}\nEnd: {xe}, {ye}\nGravity: {gravity}\nWind: {wind}\nWait: {minWait}, {maxWait}\nMaxStep: {maxStep}\nTargetArea: {targetArea}\n--------------------------------------------------------------------------"));
+            //Logger.WriteLine(FormattableString.Invariant($"Start: {xs}, {ys}\nEnd: {xe}, {ye}\nGravity: {gravity}\nWind: {wind}\nWait: {minWait}, {maxWait}\nMaxStep: {maxStep}\nTargetArea: {targetArea}\n--------------------------------------------------------------------------"));
 
             Random r = new Random();
 

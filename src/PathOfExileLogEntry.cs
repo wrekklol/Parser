@@ -1,9 +1,7 @@
 ﻿using Parser.StaticLibrary;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Text;
+using System.Globalization;
 
 namespace Parser
 {
@@ -165,22 +163,17 @@ namespace Parser
 
         public static PathOfExileCurrency ParseCurrencyType(string InRawType)
         {
-            switch (InRawType)
+            return InRawType switch
             {
-                case "alch":
-                case "alchemy":
-                    return PathOfExileCurrency.OrbofAlchemy;
-                case "chaos":
-                    return PathOfExileCurrency.ChaosOrb;
-                case "exa":
-                case "exalted":
-                    return PathOfExileCurrency.ExaltedOrb;
-                case "mir":
-                case "mirror":
-                    return PathOfExileCurrency.MirrorofKalandra;
-            }
-
-            return PathOfExileCurrency.UnknownCurrency;
+                "alch" => PathOfExileCurrency.OrbofAlchemy,
+                "alchemy" => PathOfExileCurrency.OrbofAlchemy,
+                "chaos" => PathOfExileCurrency.ChaosOrb,
+                "exa" => PathOfExileCurrency.ExaltedOrb,
+                "exalted" => PathOfExileCurrency.ExaltedOrb,
+                "mir" => PathOfExileCurrency.MirrorofKalandra,
+                "mirror" => PathOfExileCurrency.MirrorofKalandra,
+                _ => PathOfExileCurrency.UnknownCurrency
+            };
         }
     }
 
@@ -188,7 +181,7 @@ namespace Parser
     {
         public string Message { get; set; } = "";
         public string PlayerName { get; set; } = "";
-        public PathOfExileTradeOffer TradeOffer { get; set; } = null;
+        public PathOfExileTradeOffer TradeOffer { get; set; }
         public PathOfExileLogType LogType { get; set; } = PathOfExileLogType.Insignificant;
         public DateTime LogTime { get; set; }
         public string Raw { get; set; } = "";
@@ -200,71 +193,56 @@ namespace Parser
 
 
 
-        public static bool operator ==(PathOfExileLogEntry e1, PathOfExileLogEntry e2)
+        public static bool operator ==(PathOfExileLogEntry Entry1, PathOfExileLogEntry Entry2)
         {
-            if (ReferenceEquals(e1, e2))
+            if (ReferenceEquals(Entry1, Entry2))
                 return true;
-            if (ReferenceEquals(e1, null))
+            if (ReferenceEquals(Entry1, null))
                 return false;
-            if (ReferenceEquals(e2, null))
+            if (ReferenceEquals(Entry2, null))
                 return false;
 
-            return (e1.Raw == e2.Raw);
+            return (Entry1.Raw == Entry2.Raw);
         }
 
-        public static bool operator !=(PathOfExileLogEntry e1, PathOfExileLogEntry e2)
+        public static bool operator !=(PathOfExileLogEntry Entry1, PathOfExileLogEntry Entry2)
         {
-            return !(e1 == e2);
+            return !(Entry1 == Entry2);
         }
 
-        public bool Equals(PathOfExileLogEntry other)
+        public bool Equals(PathOfExileLogEntry Other)
         {
-            if (ReferenceEquals(null, other))
+            if (ReferenceEquals(null, Other))
                 return false;
-            if (ReferenceEquals(this, other))
-                return true;
-
-            return Raw.Equals(other.Raw, StringComparison.InvariantCultureIgnoreCase);
+            return ReferenceEquals(this, Other) || Raw.Equals(Other.Raw, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public override bool Equals(object e)
+        public override bool Equals(object InEntry)
         {
-            if (ReferenceEquals(null, e))
+            if (ReferenceEquals(null, InEntry))
                 return false;
-            if (ReferenceEquals(this, e))
+            if (ReferenceEquals(this, InEntry))
                 return true;
 
-            return e.GetType() == GetType() && Equals((PathOfExileLogEntry)e);
+            return InEntry.GetType() == GetType() && Equals((PathOfExileLogEntry)InEntry);
         }
 
         public override int GetHashCode()
         {
             return HashCode.Combine(Raw);
-            //unchecked
-            //{
-            //    //int hashCode = height.GetHashCode();
-            //    //hashCode = (hashCode * 397) ^ length.GetHashCode();
-            //    //hashCode = (hashCode * 397) ^ breadth.GetHashCode();
-            //    //return hashCode;
-            //    return LogID.GetHashCode();
-            //}
         }
 
         public override string ToString()
         {
-            string TimeDisplay = "[" + LogTime.TimeOfDay.ToString() + "] ";
-            switch (LogType)
+            var TimeDisplay = $"[{LogTime.TimeOfDay.ToString()}] ";
+            return LogType switch
             {
-                case PathOfExileLogType.AfkNotification:
-                    return TimeDisplay + "You are AFK.";
-                case PathOfExileLogType.NormalMessage:
-                    return TimeDisplay + PlayerName + ": " + Message;
-                case PathOfExileLogType.TradeMessage:
-                    return TradeOffer.CurrencyAmount + " " + EnumHelper<PathOfExileCurrency>.GetDisplayValue(TradeOffer.CurrencyType) + " - " + TradeOffer.Item + " (" + TradeOffer.League + ")";
-                    //return TimeDisplay + " - Trade Offer - " + TradeOffer.Item + " for " + TradeOffer.CurrencyAmount + " " + TradeOffer.CurrencyType + "(" + TradeOffer.League + ")";
-            }
-
-            return "";
+                PathOfExileLogType.AfkNotification => $"{TimeDisplay}You are AFK.",
+                PathOfExileLogType.NormalMessage => $"{TimeDisplay}{PlayerName}: {Message}",
+                PathOfExileLogType.TradeMessage =>
+                $"{TradeOffer.CurrencyAmount.ToString(CultureInfo.InvariantCulture)} {EnumHelper<PathOfExileCurrency>.GetDisplayValue(TradeOffer.CurrencyType)} - {TradeOffer.Item} ({TradeOffer.League})",
+                _ => ""
+            };
         }
     }
 }

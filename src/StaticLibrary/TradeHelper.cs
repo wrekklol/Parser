@@ -147,10 +147,10 @@ namespace Parser.StaticLibrary
                         EmptySlotColor = SlotColor,
                         SlotCoord = SlotCoord
                     });
-                    Console.WriteLine($"{InItemGrid.Name} grid slot ({x},{y}) has the color {SlotColor} and the coord {SlotCoord}");
+                    Logger.WriteLine($"{InItemGrid.Name} grid slot ({x},{y}) has the color {SlotColor} and the coord {SlotCoord}");
                 }
             }
-            Console.WriteLine("Done finding slots");
+            Logger.WriteLine("Done finding slots");
             SaveGrids();
         }
 
@@ -166,10 +166,10 @@ namespace Parser.StaticLibrary
                 {
                     if (InItemGrid.Slots[x][y].IsSlotEmpty())
                     {
-                        Console.WriteLine($"{InItemGrid.Name} grid slot ({x},{y}) was empty (checked color was {InItemGrid.Slots[x][y].SlotColor} against {InItemGrid.Slots[x][y].EmptySlotColor})");
+                        Logger.WriteLine($"{InItemGrid.Name} grid slot ({x},{y}) was empty (checked color was {InItemGrid.Slots[x][y].SlotColor} against {InItemGrid.Slots[x][y].EmptySlotColor})");
                         continue;
                     }
-                    Console.WriteLine($"{InItemGrid.Name} grid slot ({x},{y}) was NOT empty (checked color was {InItemGrid.Slots[x][y].SlotColor} against {InItemGrid.Slots[x][y].EmptySlotColor})");
+                    Logger.WriteLine($"{InItemGrid.Name} grid slot ({x},{y}) was NOT empty (checked color was {InItemGrid.Slots[x][y].SlotColor} against {InItemGrid.Slots[x][y].EmptySlotColor})");
 
                     OccupiedSlots.Add(new Point(x, y));
                 }

@@ -56,7 +56,7 @@ namespace Parser
             {
                 try
                 {
-                    MainWindowRef.Dispatcher.Invoke(new Action(() => TryReadLog()));
+                    MainWindowRef.Dispatcher?.Invoke(TryReadLog);
                 }
                 catch (TaskCanceledException) { }
             }
@@ -64,27 +64,25 @@ namespace Parser
 
         private void ReadLog()
         {
-            using (StreamReader LogReader = new StreamReader(File.Open(@ClientLogPath.Text, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), true))
+            using StreamReader LogReader = new StreamReader(File.Open(@ClientLogPath.Text, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), true);
+            LogReader.BaseStream.Seek(0, SeekOrigin.End);
+
+            int i = 0;
+            while ((i < PARSENUM + 1) && (LogReader.BaseStream.Position > 0))
             {
-                LogReader.BaseStream.Seek(0, SeekOrigin.End);
+                LogReader.BaseStream.Position--;
+                int c = LogReader.BaseStream.ReadByte();
 
-                int i = 0;
-                while ((i < PARSENUM + 1) && (LogReader.BaseStream.Position > 0))
-                {
+                if (LogReader.BaseStream.Position > 0)
                     LogReader.BaseStream.Position--;
-                    int c = LogReader.BaseStream.ReadByte();
 
-                    if (LogReader.BaseStream.Position > 0)
-                        LogReader.BaseStream.Position--;
-
-                    if (c == Convert.ToInt32('\n'))
-                        ++i;
-                }
-
-                string str = LogReader.ReadToEnd();
-                RawLogEntries = new List<string>(str.Replace("\r", "", StringComparison.InvariantCultureIgnoreCase).Split('\n').Where(s => !string.IsNullOrWhiteSpace(s)).Distinct());
-                LogReader.Close();
+                if (c == Convert.ToInt32('\n'))
+                    ++i;
             }
+
+            string str = LogReader.ReadToEnd();
+            RawLogEntries = new List<string>(collection: str.Replace("\r", "", StringComparison.InvariantCultureIgnoreCase).Split('\n').Where(s => !string.IsNullOrWhiteSpace(s)).Distinct());
+            LogReader.Close();
 
             ParseLog();
         }
@@ -94,9 +92,8 @@ namespace Parser
             if (RawLogEntries.Count <= 0)
                 return;
 
-            for (int i = 0; i < RawLogEntries.Count; i++)
+            foreach (string RawLogEntry in RawLogEntries)
             {
-                string RawLogEntry = RawLogEntries[i];
                 if (!char.IsDigit(RawLogEntry[0]))
                     continue;
 
@@ -141,18 +138,18 @@ namespace Parser
 
                 LogEntries.Add(LogEntry);
                 OnNewLogEntry?.Invoke(LogEntry);
-                //MainWindowRef.AddListLogEntry(LogEntry);
             }
         }
 
         public static string GetRENAMETHISCurrencyName(string InCurrencyName)
         {
-            return InCurrencyName.Replace("\"", "").Replace(" ", "").Replace("'", "").Replace("-", "");
+            return InCurrencyName != null
+                ? InCurrencyName.Replace("\"", "").Replace(" ", "").Replace("'", "").Replace("-", "")
+                : "";
         }
 
 
-
-        public override void OnAddSettings(Settings InSettings)
+        protected override void OnAddSettings(Settings InSettings)
         {
             InSettings.AddSetting(new Label()
             {
@@ -176,7 +173,7 @@ namespace Parser
             });
         }
 
-        public override void OnLoadSettings(Settings InSettings)
+        protected override void OnLoadSettings(Settings InSettings)
         {
             string p = Environment.GetEnvironmentVariable("PoELogPath", EnvironmentVariableTarget.User);
             ClientLogPath = InSettings.GetSetting<TextBox>("PoELogPath");
@@ -193,7 +190,7 @@ namespace Parser
 
         }
 
-        public override void OnSaveSettings(Settings InSettings)
+        protected override void OnSaveSettings(Settings InSettings)
         {
             Environment.SetEnvironmentVariable("PoELogPath", ClientLogPath.Text, EnvironmentVariableTarget.User);
 
