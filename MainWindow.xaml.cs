@@ -1,8 +1,13 @@
 ﻿using Newtonsoft.Json.Linq;
+using Onova;
+using Onova.Services;
 using Parser.StaticLibrary;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -56,6 +61,16 @@ namespace Parser
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsWindow.AddSettings();
+
+            new Thread(() => 
+            {
+                Logger.WriteLine($"Checking for update (Current version: {Assembly.GetExecutingAssembly().GetName().Version})", true);
+                //Task.Run(async () => 
+                //{
+                //    using var m = new UpdateManager( new GithubPackageResolver("Wrekklol", "Parser", "*.zip"), new ZipPackageExtractor());
+                //    await m.CheckPerformUpdateAsync().ConfigureAwait(true);
+                //});
+            }).Start();
         }
 
         private void OnGetCurrencyValues(string InData)
