@@ -63,7 +63,7 @@
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="PowerShell -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File &quot;&quot;$(SolutionDir)Tools\zipper.ps1&quot;&quot;' -Verb RunAs}&quot;" />
+	  <Exec Command="powershell -NoExit -ExecutionPolicy Unrestricted $(ProjectDir)Tools\zipper.ps1 -projectDir $(ProjectDir) -targetDir $(TargetDir) -targetPath $(TargetPath)" />
 	</Target>
 
 </Project>

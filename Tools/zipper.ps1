@@ -1,6 +1,13 @@
-$projectDir = "C:\Users\Lars\source\repos\Parser\"#$args[0]
-$targetDir = "C:\Users\Lars\source\repos\Parser\bin\Release\Parser\"#$args[1]
-$targetPath = "C:\Users\Lars\source\repos\Parser\bin\Release\Parser\Parser.dll"#$args[2]
+#$projectDir = "C:\Users\Lars\source\repos\Parser\"#$args[0]
+#$targetDir = "C:\Users\Lars\source\repos\Parser\bin\Release\Parser\"#$args[1]
+#$targetPath = "C:\Users\Lars\source\repos\Parser\bin\Release\Parser\Parser.dll"#$args[2]
+
+Param
+(
+    [string]$projectDir,
+    [string]$targetDir,
+    [string]$targetPath
+)
 
 $buildPath = $projectDir + "Builds\zipped.zip"
 $7zipPath = "C:\Program Files\7-Zip\7z.exe"
