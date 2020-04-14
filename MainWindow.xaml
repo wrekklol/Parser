@@ -21,6 +21,9 @@
             <MenuItem Header="_File" Height="28" Background="{DynamicResource MaterialDesignToolBarBackground}">
                 <MenuItem Header="_Settings" Click="OpenSettings_Click"/>
                 <MenuItem Header="_Clear Logs" Click="ClearLogs_Click"/>
+                <MenuItem IsHitTestVisible="False" IsTabStop="False" Focusable="False"/>
+                <MenuItem Header="Check for _Updates" Click="CheckUpdate_Click"/>
+                <MenuItem Header="v0.0.0.0" x:Name="VersionText" IsHitTestVisible="False" IsTabStop="False" Focusable="False"/>
             </MenuItem>
         </Menu>
         <Button Content="Cancel Auto Trade" x:Name="CancelTradeButton" HorizontalAlignment="Right" Margin="0,0,195,10" VerticalAlignment="Bottom" Width="200" IsCancel="True" IsEnabled="False"/>

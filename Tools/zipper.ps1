@@ -19,7 +19,7 @@ if (-not (Test-Path -Path $7zipPath -PathType Leaf))
 
 Set-Alias 7zip $7zipPath
 
-$Source = $targetDir
+$Source = $targetDir + "\*"
 $Target = $buildPath
 
 7zip a -y -tzip $Target $Source -mx=0

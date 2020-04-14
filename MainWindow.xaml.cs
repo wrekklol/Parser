@@ -3,14 +3,9 @@ using Onova;
 using Onova.Services;
 using Parser.StaticLibrary;
 using System;
-using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 
 //if (Dispatcher.CheckAccess())
 //{
@@ -26,6 +21,10 @@ namespace Parser
         public static PathOfExile.LogParser PoELogParser { get; } = new PathOfExile.LogParser();
         public static PathOfExile.Trader PoETrader { get; } = new PathOfExile.Trader();
         public static Settings SettingsWindow { get; set; } = new Settings();
+        private readonly IUpdateManager _UpdateManager = new UpdateManager(new GithubPackageResolver("wrekklol", "Parser", "Parser-*.zip"), new ZipPackageExtractor());
+        //private readonly IUpdateManager _UpdateManager = new UpdateManager(
+        //    new LocalPackageResolver(@"C:\Users\Lars\source\repos\Parser\Builds\", "*.zip"),
+        //    new ZipPackageExtractor());
 
 #if DEBUG
         public static ParserDebug PDebug { get; } = new ParserDebug();
@@ -37,13 +36,15 @@ namespace Parser
         {
             InitializeComponent();
 
-            _ = MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues);
+            //_ = MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues);
 
             Loaded += MainWindow_Loaded;
             PathOfExile.LogParser.OnNewLogEntry += AddListLogEntry;
 
             MouseDown += (sender, e) => { PoELogEntries.SelectedItem = null; };
             PoELogEntries.SelectionChanged += PoELogEntries_SelectionChanged;
+
+            VersionText.Header = $"v{Assembly.GetExecutingAssembly().GetName().Version}";
         }
 
         private void PoELogEntries_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -61,16 +62,6 @@ namespace Parser
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsWindow.AddSettings();
-
-            new Thread(() => 
-            {
-                Logger.WriteLine($"Checking for update (Current version: {Assembly.GetExecutingAssembly().GetName().Version})", true);
-                //Task.Run(async () => 
-                //{
-                //    using var m = new UpdateManager( new GithubPackageResolver("Wrekklol", "Parser", "*.zip"), new ZipPackageExtractor());
-                //    await m.CheckPerformUpdateAsync().ConfigureAwait(true);
-                //});
-            }).Start();
         }
 
         private void OnGetCurrencyValues(string InData)
@@ -122,7 +113,6 @@ namespace Parser
 
                 if (PathOfExile.TradeOffer.GetCurrencyWorth(InLogEntry.Offer) >= PathOfExile.LogParser.MINPRICEFORNOTIFY)
                     Slack.PostMessage(InLogEntry.ToString(), "Notifier", Slack.SlackUsername.Text);
-                    //Slack.PostMessage(InLogEntry.ToString(), "Notifier", "#Path of Exile", Slack.SlackUsername.Text);
             }
         }
 
@@ -134,6 +124,25 @@ namespace Parser
         private void ClearLogs_Click(object sender, RoutedEventArgs e)
         {
             PoELogEntries.Items.Clear();
+        }
+
+        private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            var check = await _UpdateManager.CheckForUpdatesAsync().ConfigureAwait(false);
+
+            // If there are none, notify user and return
+            if (!check.CanUpdate)
+            {
+                MessageBox.Show("There are no updates available.");
+                return;
+            }
+
+            await _UpdateManager.PrepareUpdateAsync(check.LastVersion).ConfigureAwait(false);
+
+            // Launch updater and exit
+            _UpdateManager.LaunchUpdater(check.LastVersion);
+            Close();
+            //Application.Current.Shutdown();
         }
     }
 }
