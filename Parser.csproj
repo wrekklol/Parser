@@ -25,6 +25,10 @@
 		<Optimize>false</Optimize>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <OutputPath>bin\Release\Parser\</OutputPath>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="MaterialDesignThemes" Version="3.1.1-ci1261" />
 		<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0-beta3.final">
@@ -58,7 +62,7 @@
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="call &quot;$(SolutionDir)Tools\zipper.bat&quot; &quot;$(TargetDir)&quot; &quot;$(SolutionDir)Tools\zipped.zip&quot;" />
+	  <Exec Command="powershell -ExecutionPolicy Unrestricted &quot;$(SolutionDir)Tools\zipper.ps1&quot; &quot;$(ProjectDir)&quot; &quot;$(TargetDir)&quot; &quot;$(TargetPath)&quot;" />
 	</Target>
 
 </Project>
