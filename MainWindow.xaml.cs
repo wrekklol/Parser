@@ -23,8 +23,8 @@ namespace Parser
     public partial class MainWindow : Window
     {
         public static SlackClient Slack { get; } = new SlackClient("https://hooks.slack.com/services/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");
-        public static PathOfExileLogParser PoELogParser { get; } = new PathOfExileLogParser();
-        public static PathOfExileTrader PoETrader { get; } = new PathOfExileTrader();
+        public static PathOfExile.LogParser PoELogParser { get; } = new PathOfExile.LogParser();
+        public static PathOfExile.Trader PoETrader { get; } = new PathOfExile.Trader();
         public static Settings SettingsWindow { get; set; } = new Settings();
 
 #if DEBUG
@@ -40,7 +40,7 @@ namespace Parser
             _ = MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues);
 
             Loaded += MainWindow_Loaded;
-            PathOfExileLogParser.OnNewLogEntry += AddListLogEntry;
+            PathOfExile.LogParser.OnNewLogEntry += AddListLogEntry;
 
             MouseDown += (sender, e) => { PoELogEntries.SelectedItem = null; };
             PoELogEntries.SelectionChanged += PoELogEntries_SelectionChanged;
@@ -48,7 +48,7 @@ namespace Parser
 
         private void PoELogEntries_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            PathOfExileLogEntry LogEntry = (PoELogEntries.SelectedItem as ParserLogEntry)?.LogData as PathOfExileLogEntry;
+            PathOfExile.LogEntry LogEntry = (PoELogEntries.SelectedItem as ParserLogEntry)?.LogData as PathOfExile.LogEntry;
             if (LogEntry == null || !LogEntry.IsTradeMessage())
             {
                 BeginTradeButton.IsEnabled = false;
@@ -87,8 +87,8 @@ namespace Parser
                 {
                     var CurrencyType = y.Value<string>("currencyTypeName");
                     var CurrencyValue = y.Value<JToken>("receive").Value<double>("value");
-                    PoELogParser.CurrencyValues.Add(Enum.Parse<PathOfExileCurrency>(PathOfExileLogParser.GetRENAMETHISCurrencyName(CurrencyType), true), CurrencyValue);
-                    Logger.WriteLine($"{Enum.Parse<PathOfExileCurrency>(PathOfExileLogParser.GetRENAMETHISCurrencyName(CurrencyType))} => {CurrencyValue}");
+                    PoELogParser.CurrencyValues.Add(Enum.Parse<PathOfExile.Currency>(PathOfExile.LogParser.GetRENAMETHISCurrencyName(CurrencyType), true), CurrencyValue);
+                    Logger.WriteLine($"{Enum.Parse<PathOfExile.Currency>(PathOfExile.LogParser.GetRENAMETHISCurrencyName(CurrencyType))} => {CurrencyValue}");
                 }
                 Logger.WriteLine("Done fetching currency values", true);
             }
@@ -96,10 +96,10 @@ namespace Parser
 
 
 
-        public void AddListLogEntry(PathOfExileLogEntry InLogEntry)
+        public void AddListLogEntry(PathOfExile.LogEntry InLogEntry)
         {
             ItemCollection LogList = PoELogEntries.Items;
-            if (InLogEntry != null && !LogList.Contains(InLogEntry) && InLogEntry.LogType != PathOfExileLogType.Insignificant)
+            if (InLogEntry != null && !LogList.Contains(InLogEntry) && InLogEntry.LogType != PathOfExile.LogType.Insignificant)
             {
                 ParserLogEntry l = new ParserLogEntry
                 {
@@ -120,7 +120,7 @@ namespace Parser
 
                 LogList.Add(l);
 
-                if (PathOfExileTradeOffer.GetCurrencyWorth(InLogEntry.TradeOffer) >= PathOfExileLogParser.MINPRICEFORNOTIFY)
+                if (PathOfExile.TradeOffer.GetCurrencyWorth(InLogEntry.Offer) >= PathOfExile.LogParser.MINPRICEFORNOTIFY)
                     Slack.PostMessage(InLogEntry.ToString(), "Notifier", Slack.SlackUsername.Text);
                     //Slack.PostMessage(InLogEntry.ToString(), "Notifier", "#Path of Exile", Slack.SlackUsername.Text);
             }

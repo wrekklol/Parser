@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Parser.StaticLibrary;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,9 +10,9 @@ using System.IO;
 //public readonly static int[] InventoryGridX = new int[] { 1274, 1326, 1379, 1432, 1484, 1537, 1590, 1642, 1695, 1748, 1800, 1853 };
 //public readonly static int[] InventoryGridY = new int[] { 638, 690, 743, 796, 848 };
 
-namespace Parser.StaticLibrary
+namespace Parser.PathOfExile.StaticLibrary
 {
-    public class PathOfExileItem
+    public class GameItem
     {
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
@@ -23,7 +24,7 @@ namespace Parser.StaticLibrary
         public int SizeY { get; set; }
     }
 
-    public class PathOfExileItemSlot
+    public class ItemSlot
     {
         [JsonIgnore]
         public string GeneratedItemName { get; set; } = "";
@@ -71,10 +72,10 @@ namespace Parser.StaticLibrary
         }
     }
 
-    public class PathOfExileItemGrid
+    public class ItemGrid
     {
         // Slots in grid.
-        public List<List<PathOfExileItemSlot>> Slots { get; set; } = new List<List<PathOfExileItemSlot>>();
+        public List<List<ItemSlot>> Slots { get; set; } = new List<List<ItemSlot>>();
         // Name of the grid.
         public string Name { get; set; }
         // Start point of the grid.
@@ -84,7 +85,7 @@ namespace Parser.StaticLibrary
         // Size of the slots.
         public Point SlotSize { get; set; }
 
-        public PathOfExileItemGrid(string InName, Point InStartPoint, Point InSize, Point InSlotSize)
+        public ItemGrid(string InName, Point InStartPoint, Point InSize, Point InSlotSize)
         {
             Name = InName;
             StartPoint = InStartPoint;
@@ -95,20 +96,20 @@ namespace Parser.StaticLibrary
 
     public static class TradeHelper
     {
-        public static Dictionary<string, PathOfExileItemGrid> ItemGrids { get; set; } = new Dictionary<string, PathOfExileItemGrid>();
+        public static Dictionary<string, ItemGrid> ItemGrids { get; set; } = new Dictionary<string, ItemGrid>();
         public static string ItemGridsPath { get; } = @Directory.GetCurrentDirectory() + $"\\ItemGrids.json";
-        public static Dictionary<string, PathOfExileItem> ItemBases { get; set; } = new Dictionary<string, PathOfExileItem>();
-        public static string ItemBasesPath { get; } = @Directory.GetCurrentDirectory() + "\\PathOfExileItemBases.json";
+        public static Dictionary<string, GameItem> ItemBases { get; set; } = new Dictionary<string, GameItem>();
+        public static string ItemBasesPath { get; } = @Directory.GetCurrentDirectory() + "\\ItemBases.json";
 
 
 
         public static void InitItemBases()
         {
             if (File.Exists(ItemBasesPath))
-                ItemBases = MiscLibrary.ReadFromJsonFile<Dictionary<string, PathOfExileItem>>(ItemBasesPath);
+                ItemBases = MiscLibrary.ReadFromJsonFile<Dictionary<string, GameItem>>(ItemBasesPath);
         }
 
-        public static PathOfExileItem GetItemBase(string InBaseName, bool InbIsMagicItem)
+        public static GameItem GetItemBase(string InBaseName, bool InbIsMagicItem)
         {
             if (InbIsMagicItem)
             {
@@ -128,7 +129,7 @@ namespace Parser.StaticLibrary
 
 
 
-        public static void FindSlots(PathOfExileItemGrid InItemGrid)
+        public static void FindSlots(ItemGrid InItemGrid)
         {
             if (InItemGrid == null)
                 return;
@@ -136,12 +137,12 @@ namespace Parser.StaticLibrary
             InItemGrid.Slots.Clear();
             for (int x = 0; x < InItemGrid.Size.X; x++)
             {
-                InItemGrid.Slots.Add(new List<PathOfExileItemSlot>());
+                InItemGrid.Slots.Add(new List<ItemSlot>());
                 for (int y = 0; y < InItemGrid.Size.Y; y++)
                 {
                     Point SlotCoord = CalcPoint(InItemGrid, x, y);
                     Color SlotColor = MiscLibrary.GetColorAt(SlotCoord);
-                    InItemGrid.Slots[x].Add(new PathOfExileItemSlot()
+                    InItemGrid.Slots[x].Add(new ItemSlot()
                     {
                         SlotColor = SlotColor,
                         EmptySlotColor = SlotColor,
@@ -154,7 +155,7 @@ namespace Parser.StaticLibrary
             SaveGrids();
         }
 
-        public static List<Point> FindOccupiedSlots(PathOfExileItemGrid InItemGrid)
+        public static List<Point> FindOccupiedSlots(ItemGrid InItemGrid)
         {
             if (InItemGrid == null)
                 return new List<Point>();
@@ -190,15 +191,15 @@ namespace Parser.StaticLibrary
 
         public static void InitGrids()
         {
-            ItemGrids.Add("Inventory", new PathOfExileItemGrid("Inventory", new Point(1298, 615), new Point(12, 5), new Point(52, 52)));
-            ItemGrids.Add("RegularStashTab", new PathOfExileItemGrid("RegularStashTab", new Point(43, 188), new Point(12, 12), new Point(52, 52)));
-            ItemGrids.Add("TheirTradeOffer", new PathOfExileItemGrid("TheirTradeOffer", new Point(340, 215), new Point(12, 5), new Point(52, 52)));
+            ItemGrids.Add("Inventory", new ItemGrid("Inventory", new Point(1298, 615), new Point(12, 5), new Point(52, 52)));
+            ItemGrids.Add("RegularStashTab", new ItemGrid("RegularStashTab", new Point(43, 188), new Point(12, 12), new Point(52, 52)));
+            ItemGrids.Add("TheirTradeOffer", new ItemGrid("TheirTradeOffer", new Point(340, 215), new Point(12, 5), new Point(52, 52)));
         }
 
         public static void LoadGrids()
         {
             if (File.Exists(ItemGridsPath))
-                ItemGrids = MiscLibrary.ReadFromJsonFile<Dictionary<string, PathOfExileItemGrid>>(ItemGridsPath);
+                ItemGrids = MiscLibrary.ReadFromJsonFile<Dictionary<string, ItemGrid>>(ItemGridsPath);
 
             if (ItemGrids.Count <= 0)
                 InitGrids();
@@ -211,17 +212,17 @@ namespace Parser.StaticLibrary
 
 
 
-        public static Point CalcPoint(PathOfExileItemGrid InItemGrid, int InIndexX, int InIndexY)
+        public static Point CalcPoint(ItemGrid InItemGrid, int InIndexX, int InIndexY)
         {
             return InItemGrid != null ? new Point(InItemGrid.StartPoint.X + InItemGrid.SlotSize.X * InIndexX, InItemGrid.StartPoint.Y + InItemGrid.SlotSize.Y * InIndexY) : Point.Empty;
         }
 
-        public static int CalcXCoord(PathOfExileItemGrid InItemGrid, int InIndex)
+        public static int CalcXCoord(ItemGrid InItemGrid, int InIndex)
         {
             return InItemGrid != null ? InItemGrid.StartPoint.X + InItemGrid.SlotSize.X * InIndex : -1;
         }
 
-        public static int CalcYCoord(PathOfExileItemGrid InItemGrid, int InIndex)
+        public static int CalcYCoord(ItemGrid InItemGrid, int InIndex)
         {
             return InItemGrid != null ? InItemGrid.StartPoint.Y + InItemGrid.SlotSize.Y * InIndex : -1;
         }

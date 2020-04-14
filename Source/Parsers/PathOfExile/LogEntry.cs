@@ -3,9 +3,9 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
-namespace Parser
+namespace Parser.PathOfExile
 {
-    public enum PathOfExileLogType
+    public enum LogType
     {
         Insignificant,
         AfkNotification,
@@ -14,7 +14,7 @@ namespace Parser
         TradeMessage,
     }
 
-    public enum PathOfExileCurrency
+    public enum Currency
     {
         [Display(Name = "Unknown Currency")]
         UnknownCurrency,
@@ -144,45 +144,45 @@ namespace Parser
         PerandusCoin
     }
 
-    public class PathOfExileTradeOffer
+    public class TradeOffer
     {
         public string Item { get; set; }
         public double CurrencyAmount { get; set; }
-        public PathOfExileCurrency CurrencyType { get; set; }
+        public Currency CurrencyType { get; set; }
         public string League { get; set; }
 
-        public static double GetCurrencyWorth(double InCurrencyAmount, PathOfExileCurrency InCurrencyType)
+        public static double GetCurrencyWorth(double InCurrencyAmount, Currency InCurrencyType)
         {
             return InCurrencyAmount * MainWindow.PoELogParser.CurrencyValues[InCurrencyType];
         }
 
-        public static double GetCurrencyWorth(PathOfExileTradeOffer InTradeOffer)
+        public static double GetCurrencyWorth(TradeOffer InOffer)
         {
-            return InTradeOffer != null ? GetCurrencyWorth(InTradeOffer.CurrencyAmount, InTradeOffer.CurrencyType) : 0;
+            return InOffer != null ? GetCurrencyWorth(InOffer.CurrencyAmount, InOffer.CurrencyType) : 0;
         }
 
-        public static PathOfExileCurrency ParseCurrencyType(string InRawType)
+        public static Currency ParseCurrencyType(string InRawType)
         {
             return InRawType switch
             {
-                "alch" => PathOfExileCurrency.OrbofAlchemy,
-                "alchemy" => PathOfExileCurrency.OrbofAlchemy,
-                "chaos" => PathOfExileCurrency.ChaosOrb,
-                "exa" => PathOfExileCurrency.ExaltedOrb,
-                "exalted" => PathOfExileCurrency.ExaltedOrb,
-                "mir" => PathOfExileCurrency.MirrorofKalandra,
-                "mirror" => PathOfExileCurrency.MirrorofKalandra,
-                _ => PathOfExileCurrency.UnknownCurrency
+                "alch" => Currency.OrbofAlchemy,
+                "alchemy" => Currency.OrbofAlchemy,
+                "chaos" => Currency.ChaosOrb,
+                "exa" => Currency.ExaltedOrb,
+                "exalted" => Currency.ExaltedOrb,
+                "mir" => Currency.MirrorofKalandra,
+                "mirror" => Currency.MirrorofKalandra,
+                _ => Currency.UnknownCurrency
             };
         }
     }
 
-    public class PathOfExileLogEntry
+    public class LogEntry
     {
         public string Message { get; set; } = "";
         public string PlayerName { get; set; } = "";
-        public PathOfExileTradeOffer TradeOffer { get; set; }
-        public PathOfExileLogType LogType { get; set; } = PathOfExileLogType.Insignificant;
+        public TradeOffer Offer { get; set; }
+        public LogType LogType { get; set; } = LogType.Insignificant;
         public DateTime LogTime { get; set; }
         public string Raw { get; set; } = "";
 
@@ -193,7 +193,7 @@ namespace Parser
 
 
 
-        public static bool operator ==(PathOfExileLogEntry Entry1, PathOfExileLogEntry Entry2)
+        public static bool operator ==(LogEntry Entry1, LogEntry Entry2)
         {
             if (ReferenceEquals(Entry1, Entry2))
                 return true;
@@ -205,12 +205,12 @@ namespace Parser
             return (Entry1.Raw == Entry2.Raw);
         }
 
-        public static bool operator !=(PathOfExileLogEntry Entry1, PathOfExileLogEntry Entry2)
+        public static bool operator !=(LogEntry Entry1, LogEntry Entry2)
         {
             return !(Entry1 == Entry2);
         }
 
-        public bool Equals(PathOfExileLogEntry Other)
+        public bool Equals(LogEntry Other)
         {
             if (ReferenceEquals(null, Other))
                 return false;
@@ -224,7 +224,7 @@ namespace Parser
             if (ReferenceEquals(this, InEntry))
                 return true;
 
-            return InEntry.GetType() == GetType() && Equals((PathOfExileLogEntry)InEntry);
+            return InEntry.GetType() == GetType() && Equals((LogEntry)InEntry);
         }
 
         public override int GetHashCode()
@@ -237,10 +237,10 @@ namespace Parser
             var TimeDisplay = $"[{LogTime.TimeOfDay.ToString()}] ";
             return LogType switch
             {
-                PathOfExileLogType.AfkNotification => $"{TimeDisplay}You are AFK.",
-                PathOfExileLogType.NormalMessage => $"{TimeDisplay}{PlayerName}: {Message}",
-                PathOfExileLogType.TradeMessage =>
-                $"{TradeOffer.CurrencyAmount.ToString(CultureInfo.InvariantCulture)} {EnumHelper<PathOfExileCurrency>.GetDisplayValue(TradeOffer.CurrencyType)} - {TradeOffer.Item} ({TradeOffer.League})",
+                LogType.AfkNotification => $"{TimeDisplay}You are AFK.",
+                LogType.NormalMessage => $"{TimeDisplay}{PlayerName}: {Message}",
+                LogType.TradeMessage =>
+                $"{Offer.CurrencyAmount.ToString(CultureInfo.InvariantCulture)} {EnumHelper<Currency>.GetDisplayValue(Offer.CurrencyType)} - {Offer.Item} ({Offer.League})",
                 _ => ""
             };
         }

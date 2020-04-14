@@ -5,11 +5,11 @@ using System.Windows;
 
 namespace Parser
 {
-    public abstract class BaseParser
+    public abstract class ParserBase
     {
         public MainWindow MainWindowRef { get; } = (MainWindow)Application.Current.MainWindow;
 
-        public BaseParser()
+        public ParserBase()
         {
             Settings.OnAddSettings += OnAddSettings;
             Settings.OnLoadSettings += OnLoadSettings;

@@ -10,9 +10,9 @@ using System.Windows.Controls;
 
 //H:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt
 
-namespace Parser
+namespace Parser.PathOfExile
 {
-    public class PathOfExileLogParser : BaseParser
+    public class LogParser : ParserBase
     {
         public const int PARSENUM = 20; // Num of log entries to parse
         public const int INVALIDATETIME = 60; // How many seconds before an entry is too "old"
@@ -23,14 +23,14 @@ namespace Parser
         public string ParsedLogPath { get; } = @Directory.GetCurrentDirectory() + "\\ParsedLogs.json";
 
         public List<string> RawLogEntries { get; private set; } = new List<string>();
-        public List<PathOfExileLogEntry> LogEntries { get; private set; } = new List<PathOfExileLogEntry>();
-        public Dictionary<PathOfExileCurrency, double> CurrencyValues { get; } = new Dictionary<PathOfExileCurrency, double>() { { PathOfExileCurrency.ChaosOrb, 1 }, { PathOfExileCurrency.UnknownCurrency, 0 } };
+        public List<LogEntry> LogEntries { get; private set; } = new List<LogEntry>();
+        public Dictionary<Currency, double> CurrencyValues { get; } = new Dictionary<Currency, double>() { { Currency.ChaosOrb, 1 }, { Currency.UnknownCurrency, 0 } };
 
-        public static event Action<PathOfExileLogEntry> OnNewLogEntry;
+        public static event Action<LogEntry> OnNewLogEntry;
 
 
 
-        public PathOfExileLogParser() : base()
+        public LogParser() : base()
         {
             MainWindowRef.Loaded += (sender, e) => 
             {
@@ -98,7 +98,7 @@ namespace Parser
                     continue;
 
                 string[] str = RawLogEntry.Split(' ', 8); //todo: rename str
-                PathOfExileLogEntry LogEntry = new PathOfExileLogEntry
+                LogEntry LogEntry = new LogEntry
                 {
                     LogTime = DateTime.Parse(str[0] + " " + str[1], null, DateTimeStyles.AssumeLocal),
                     Raw = RawLogEntry
@@ -117,24 +117,24 @@ namespace Parser
 
                     if(LogEntry.IsTradeMessage())
                     {
-                        LogEntry.LogType = PathOfExileLogType.TradeMessage;
+                        LogEntry.LogType = LogType.TradeMessage;
 
                         string[] Currency = LogEntry.Message.Substring(" listed for ", " in ").Split(' ');
-                        LogEntry.TradeOffer = new PathOfExileTradeOffer
+                        LogEntry.Offer = new TradeOffer
                         {
                             Item = LogEntry.Message.Substring(" your ", " listed for "),
                             CurrencyAmount = double.Parse(Currency[0], CultureInfo.InvariantCulture.NumberFormat),
-                            CurrencyType = PathOfExileTradeOffer.ParseCurrencyType(Currency[1]),
+                            CurrencyType = TradeOffer.ParseCurrencyType(Currency[1]),
                             League = LogEntry.Message.Substring(" in ", " ")
                         };
                     }
 
-                    LogEntry.LogType = LogEntry.IsTradeMessage() ? PathOfExileLogType.TradeMessage : PathOfExileLogType.NormalMessage;
+                    LogEntry.LogType = LogEntry.IsTradeMessage() ? LogType.TradeMessage : LogType.NormalMessage;
                 }
                 else if (LogMessage.StartsWith(": AFK mode is now ON.", StringComparison.InvariantCultureIgnoreCase))
-                    LogEntry.LogType = PathOfExileLogType.AfkNotification;
+                    LogEntry.LogType = LogType.AfkNotification;
                 else
-                    LogEntry.LogType = PathOfExileLogType.Insignificant;
+                    LogEntry.LogType = LogType.Insignificant;
 
                 LogEntries.Add(LogEntry);
                 OnNewLogEntry?.Invoke(LogEntry);
@@ -186,7 +186,7 @@ namespace Parser
             List<string> LoadedEntries = JsonConvert.DeserializeObject<List<string>>(r.ReadToEnd());
 
             foreach (string Entry in LoadedEntries)
-                LogEntries.Add(new PathOfExileLogEntry() { Raw = Entry }); //todo: define var which holds the loaded entries, and compare them with RawLogEntries in the ReadLog func
+                LogEntries.Add(new LogEntry() { Raw = Entry }); //todo: define var which holds the loaded entries, and compare them with RawLogEntries in the ReadLog func
 
         }
 

@@ -57,13 +57,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Source\PathOfExileItemBases.json">
+		<None Update="Source\Parsers\PathOfExile\ItemBases.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="powershell -NoExit -ExecutionPolicy Unrestricted $(ProjectDir)Tools\zipper.ps1 -projectDir $(ProjectDir) -targetDir $(TargetDir) -targetPath $(TargetPath)" />
+	  <Exec Command="if $(ConfigurationName) == Debug goto :debug&#xD;&#xA;&#xD;&#xA;:release&#xD;&#xA;powershell -NoExit -ExecutionPolicy Unrestricted $(ProjectDir)Tools\zipper.ps1 -projectDir $(ProjectDir) -targetDir $(TargetDir) -targetPath $(TargetPath)&#xD;&#xA;goto :exit&#xD;&#xA;&#xD;&#xA;:debug&#xD;&#xA;:exit" />
 	</Target>
 
 </Project>
