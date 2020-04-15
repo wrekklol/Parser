@@ -37,7 +37,7 @@ if (Test-Path -Path $fullPath -PathType Leaf)
 
 Rename-Item $buildPath $fileName
 
-
+$usertoken = Get-Content -Path ".\usertoken.txt"
 
 $bodyCreateRelease = 
 @{
@@ -51,7 +51,7 @@ $bodyCreateRelease =
 
 $responseCreate = try 
 { 
-    Invoke-WebRequest -Headers @{"Authorization" = "token a4badf0c9bad9207a52b31c0cb17af8236283c8a"} `
+    Invoke-WebRequest -Headers @{"Authorization" = "token " + $usertoken} `
     -Method POST `
     -Body $bodyCreateRelease `
     -Uri https://api.github.com/repos/wrekklol/Parser/releases `
@@ -69,7 +69,7 @@ $url = ([System.Uri]('https://uploads.github.com/repos/wrekklol/Parser/releases/
 
 $responseUpload = try 
 { 
-    Invoke-WebRequest -Headers @{"Authorization" = "token a4badf0c9bad9207a52b31c0cb17af8236283c8a"} -Method POST -InFile $fullPath -Uri $url -ContentType application/zip -UseBasicParsing
+    Invoke-WebRequest -Headers @{"Authorization" = "token " + $usertoken} -Method POST -InFile $fullPath -Uri $url -ContentType application/zip -UseBasicParsing
 } 
 catch [System.Net.WebException] 
 { 
