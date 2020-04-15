@@ -142,7 +142,7 @@ namespace Parser
             // Launch updater and exit
             _UpdateManager.LaunchUpdater(check.LastVersion);
             Close();
-            //Application.Current.Shutdown();
+            //Application.Current.Shutdown();  
         }
     }
 }

@@ -9,6 +9,8 @@ Param
     [string]$targetPath
 )
 
+Add-Type -AssemblyName System.Windows.Forms
+
 $buildPath = $projectDir + "Builds\zipped.zip"
 $7zipPath = "C:\Program Files\7-Zip\7z.exe"
 
@@ -37,7 +39,9 @@ if (Test-Path -Path $fullPath -PathType Leaf)
 
 Rename-Item $buildPath $fileName
 
-$usertoken = Get-Content -Path ".\usertoken.txt"
+
+
+$usertoken = "token " + (Get-Content -Path ".\Tools\usertoken.txt").Trim()
 
 $bodyCreateRelease = 
 @{
@@ -51,7 +55,7 @@ $bodyCreateRelease =
 
 $responseCreate = try 
 { 
-    Invoke-WebRequest -Headers @{"Authorization" = "token " + $usertoken} `
+    Invoke-WebRequest -Headers @{"Authorization" = $usertoken} `
     -Method POST `
     -Body $bodyCreateRelease `
     -Uri https://api.github.com/repos/wrekklol/Parser/releases `
@@ -64,12 +68,23 @@ catch [System.Net.WebException]
     $_.Exception.Response 
 }
 
+$global:balmsg = New-Object System.Windows.Forms.NotifyIcon
+$notifpath = (Get-Process -id $pid).Path
+$balmsg.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($notifpath)
+$balmsg.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info
+$balmsg.BalloonTipText = $responseCreate.StatusCode.ToString() + " - " + $responseCreate.StatusDescription.ToString() + " " + $fileName
+$balmsg.BalloonTipTitle = "Build Create Information"
+$balmsg.Visible = $true
+$balmsg.ShowBalloonTip(20000)
+
+
+
 $jsonObj = ConvertFrom-Json $([String]::new($responseCreate.Content))
 $url = ([System.Uri]('https://uploads.github.com/repos/wrekklol/Parser/releases/' + $jsonObj.id + '/assets?name=' + $fileName)).AbsoluteUri
 
 $responseUpload = try 
 { 
-    Invoke-WebRequest -Headers @{"Authorization" = "token " + $usertoken} -Method POST -InFile $fullPath -Uri $url -ContentType application/zip -UseBasicParsing
+    Invoke-WebRequest -Headers @{"Authorization" = $usertoken} -Method POST -InFile $fullPath -Uri $url -ContentType application/zip -UseBasicParsing
 } 
 catch [System.Net.WebException] 
 { 
@@ -79,12 +94,11 @@ catch [System.Net.WebException]
 
 
 
-Add-Type -AssemblyName System.Windows.Forms
 $global:balmsg = New-Object System.Windows.Forms.NotifyIcon
 $notifpath = (Get-Process -id $pid).Path
 $balmsg.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($notifpath)
 $balmsg.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info
 $balmsg.BalloonTipText = $responseUpload.StatusCode.ToString() + " - " + $responseUpload.StatusDescription.ToString() + " " + $fileName
-$balmsg.BalloonTipTitle = "Build Information"
+$balmsg.BalloonTipTitle = "Build Upload Information"
 $balmsg.Visible = $true
 $balmsg.ShowBalloonTip(20000)
