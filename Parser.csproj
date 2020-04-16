@@ -67,10 +67,20 @@
 		<None Update="Source\Parsers\PathOfExile\ItemBases.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="Tools\slackhook.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="if $(ConfigurationName) == Debug goto :debug&#xD;&#xA;&#xD;&#xA;:release&#xD;&#xA;powershell -Version 5.1 -Mta -NoExit -WindowStyle Maximized -ExecutionPolicy Unrestricted $(ProjectDir)Tools\zipper.ps1 -projectDir $(ProjectDir) -targetDir $(TargetDir) -targetPath $(TargetPath)&#xD;&#xA;goto :exit&#xD;&#xA;&#xD;&#xA;:debug&#xD;&#xA;:exit" />
+    <Exec Command="if $(ConfigurationName) == Debug goto :debug&#xD;&#xA;&#xD;&#xA;:release&#xD;&#xA;powershell -Version 5.1 -Mta -NoExit -WindowStyle Maximized -ExecutionPolicy Unrestricted $(ProjectDir)Tools\zipper.ps1 -projectDir $(ProjectDir) -targetDir $(TargetDir) -targetPath $(TargetPath)&#xD;&#xA;goto :exit&#xD;&#xA;&#xD;&#xA;:debug&#xD;&#xA;:exit" />
 	</Target>
+
+  <Target Name="BeforeBuild">
+    <!-- Remove obj folder -->
+    <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
+    <!-- Remove bin folder -->
+    <RemoveDir Directories="$(BaseOutputPath)" />
+  </Target>
 
 </Project>

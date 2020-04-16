@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
+using Parser.StaticLibrary;
 using System;
 using System.Collections.Specialized;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Windows;
@@ -8,21 +10,17 @@ using System.Windows.Controls;
 
 using static Parser.Globals.Globals;
 
-// "https://hooks.slack.com/services/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"
-
 namespace Parser
 {
     public class SlackClient
     {
-        private Uri AccessUrl { get; set; }
+        private Uri AccessUrl { get; set; } = null;
         private readonly Encoding _encoding = new UTF8Encoding();
 
         public TextBox SlackUsername { get; set; }
 
         public SlackClient()
         {
-            AccessUrl = new Uri("https://hooks.slack.com/services/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");
-
             ParserSettings.OnAddSettings += OnAddSettings;
             ParserSettings.OnLoadSettings += OnLoadSettings;
             ParserSettings.OnSaveSettings += OnSaveSettings;
@@ -43,6 +41,12 @@ namespace Parser
 
         public void PostMessage(Payload p)
         {
+            if(AccessUrl == null)
+            {
+                Logger.WriteLine("Error: Slack hook url was null or invalid.");
+                return;
+            }
+
             using WebClient c = new WebClient();
             NameValueCollection d = new NameValueCollection
             {
