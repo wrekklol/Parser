@@ -178,7 +178,9 @@ namespace Parser.PathOfExile
         protected override void OnLoadSettings()
         {
             ClientLogPath = ParserSettings.GetSetting<TextBox>("PoELogPath");
-            ClientLogPath.Text = Config["PathofExileParser"]["LogPath"];
+            string s = Config["PathofExileParser"]["LogPath"];
+            if (!string.IsNullOrEmpty(s))
+                ClientLogPath.Text = s;
 
             if (!File.Exists(ParsedLogPath) || new FileInfo(ParsedLogPath).Length == 0)
                 return;

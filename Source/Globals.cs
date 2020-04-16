@@ -7,7 +7,7 @@ namespace Parser.Globals
     public static class Globals
     {
         public static ParserDebug PDebug { get; } = new ParserDebug();
-        public static SlackClient Slack { get; } = new SlackClient("https://hooks.slack.com/services/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");
+        public static SlackClient Slack { get; } = new SlackClient();
 
 
 
@@ -18,6 +18,9 @@ namespace Parser.Globals
 
         private static IniData InitConfig()
         {
+            if (!File.Exists(CfgPath))
+                File.Create(CfgPath).Dispose();
+
             CfgParser.Parser.Configuration.AllowCreateSectionsOnFly = true;
             CfgParser.Parser.Configuration.AllowKeysWithoutSection = false;
             CfgParser.Parser.Configuration.AssigmentSpacer = " ";

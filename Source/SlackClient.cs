@@ -8,18 +8,20 @@ using System.Windows.Controls;
 
 using static Parser.Globals.Globals;
 
+// "https://hooks.slack.com/services/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"
+
 namespace Parser
 {
     public class SlackClient
     {
-        private readonly Uri AccessUrl;
+        private Uri AccessUrl { get; set; }
         private readonly Encoding _encoding = new UTF8Encoding();
 
         public TextBox SlackUsername { get; set; }
 
-        public SlackClient(string urlWithAccessToken)
+        public SlackClient()
         {
-            AccessUrl = new Uri(urlWithAccessToken);
+            AccessUrl = new Uri("https://hooks.slack.com/services/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");
 
             ParserSettings.OnAddSettings += OnAddSettings;
             ParserSettings.OnLoadSettings += OnLoadSettings;
@@ -80,12 +82,19 @@ namespace Parser
         private void OnLoadSettings()
         {
             SlackUsername = ParserSettings.GetSetting<TextBox>("SlackUsername");
-            SlackUsername.Text = Config["SlackClient"]["Username"];
+            string s = Config["SlackClient"]["Username"];
+            if (!string.IsNullOrEmpty(s))
+                SlackUsername.Text = s;
+
+            string s2 = Config["SlackClient"]["AccessUrl"];
+            if (!string.IsNullOrEmpty(s2))
+                AccessUrl = new Uri(s2);
         }
 
         private void OnSaveSettings()
         {
             Config["SlackClient"]["Username"] = SlackUsername.Text;
+            Config["SlackClient"]["AccessUrl"] = AccessUrl.OriginalString;
         }
     }
 

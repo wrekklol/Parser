@@ -17,6 +17,7 @@ using static Parser.StaticLibrary.NativeMethods;
 using static Parser.Globals.Globals;
 
 using w = System.Windows;
+using Python.Runtime;
 
 namespace Parser.PathOfExile
 {
@@ -212,15 +213,7 @@ namespace Parser.PathOfExile
             ParserSettings.AddSetting<Button>("ReloadGridsButton", ReloadGridsButton, true);
         }
 
-        protected override void OnLoadSettings()
-        {
-            GridDebug = ParserSettings.GetSetting<ComboBox>("GridDebug");
-            GridDebug.SelectedItem = Config["Debug"]["Grid"];
-        }
-
-        protected override void OnSaveSettings()
-        {
-            Config["Debug"]["Grid"] = GridDebug.SelectedItem.ToString();
-        }
+        protected override void OnLoadSettings() { }
+        protected override void OnSaveSettings() { }
     }
 }

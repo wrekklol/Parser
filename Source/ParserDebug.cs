@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
+using static Parser.Globals.Globals;
+
 namespace Parser
 {
     public class ParserDebug
@@ -19,7 +21,7 @@ namespace Parser
 
             NativeMethods.AllocConsole();
 
-            bShouldGetCurrency = false;
+            //bShouldGetCurrency = false;
 #endif
 
 
@@ -48,8 +50,20 @@ namespace Parser
             }, true);
         }
 
-        private void OnLoadSettings() { }
-        private void OnSaveSettings() { }
+        private void OnLoadSettings() 
+        {
+            GridDebug = ParserSettings.GetSetting<ComboBox>("GridDebug");
+            string s = Config["Debug"]["Grid"];
+            if (!string.IsNullOrEmpty(s))
+                GridDebug.SelectedItem = s;
+        }
+        private void OnSaveSettings() 
+        {
+            if (GridDebug.SelectedItem != null)
+                Config["Debug"]["Grid"] = GridDebug.SelectedItem.ToString();
+        }
+
+        private ComboBox GridDebug { get; set; }
 #endif
     }
 }
