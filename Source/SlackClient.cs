@@ -6,6 +6,8 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
+using static Parser.Globals.Globals;
+
 namespace Parser
 {
     public class SlackClient
@@ -19,9 +21,9 @@ namespace Parser
         {
             AccessUrl = new Uri(urlWithAccessToken);
 
-            Settings.OnAddSettings += OnAddSettings;
-            Settings.OnLoadSettings += OnLoadSettings;
-            Settings.OnSaveSettings += OnSaveSettings;
+            ParserSettings.OnAddSettings += OnAddSettings;
+            ParserSettings.OnLoadSettings += OnLoadSettings;
+            ParserSettings.OnSaveSettings += OnSaveSettings;
         }
 
         // Usage: Slack.PostMessage("Hello world!", "Name of the Message Poster", "#TestChannel", "YourSlackUsername");
@@ -51,9 +53,9 @@ namespace Parser
 
 
 
-        private void OnAddSettings(Settings InSettings)
+        private void OnAddSettings()
         {
-            InSettings.AddSetting(new Label()
+            ParserSettings.AddSetting(new Label()
             {
                 Content = "Slack Username",
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -64,26 +66,26 @@ namespace Parser
                 FontStyle = FontStyles.Normal,
                 FontSize = 14
             });
-            SlackUsername = InSettings.AddSetting<TextBox>("SlackUsername", new TextBox()
+            SlackUsername = ParserSettings.AddSetting<TextBox>("SlackUsername", new TextBox()
             {
-                Text = "",
+                Text = "U011432SY95",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
                 TextWrapping = TextWrapping.Wrap,
                 MinWidth = 500,
                 MinHeight = 28.2033333333333
-            });
+            }, true);
         }
 
-        private void OnLoadSettings(Settings InSettings)
+        private void OnLoadSettings()
         {
-            SlackUsername = InSettings.GetSetting<TextBox>("SlackUsername");
-            SlackUsername.Text = Environment.GetEnvironmentVariable("SlackUsername", EnvironmentVariableTarget.User); ;
+            SlackUsername = ParserSettings.GetSetting<TextBox>("SlackUsername");
+            SlackUsername.Text = Config["SlackClient"]["Username"];
         }
 
-        private void OnSaveSettings(Settings InSettings)
+        private void OnSaveSettings()
         {
-            Environment.SetEnvironmentVariable("SlackUsername", SlackUsername.Text, EnvironmentVariableTarget.User);
+            Config["SlackClient"]["Username"] = SlackUsername.Text;
         }
     }
 

@@ -25,13 +25,13 @@ namespace Parser.StaticLibrary
                 foreach (string l in lines)
                 {
                     Console.WriteLine(l);
-                    File.AppendAllText(@Directory.GetCurrentDirectory() + "\\Log.txt", $"{CurTime}{l}\n", new UTF8Encoding(false));
+                    File.AppendAllText(@Directory.GetCurrentDirectory() + "\\log.txt", $"{CurTime}{l}\n", new UTF8Encoding(false));
                 }
             }
             else
             {
                 Console.WriteLine(str);
-                File.AppendAllText(@Directory.GetCurrentDirectory() + "\\Log.txt", $"[{DateTime.Now}] {str}\n", new UTF8Encoding(false));
+                File.AppendAllText(@Directory.GetCurrentDirectory() + "\\log.txt", $"[{DateTime.Now}] {str}\n", new UTF8Encoding(false));
             }
         }
 

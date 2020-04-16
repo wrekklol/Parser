@@ -3,32 +3,32 @@ using Onova;
 using Onova.Services;
 using Parser.StaticLibrary;
 using System;
+using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+
+using static Parser.Globals.Globals;
 
 //if (Dispatcher.CheckAccess())
 //{
 //}
 //else
 //    Dispatcher.Invoke(new Action(() => AddListLogEntry(InLogEntry)));
+//private readonly IUpdateManager _UpdateManager = new UpdateManager(
+//    new LocalPackageResolver(@"C:\Users\Lars\source\repos\Parser\Builds\", "*.zip"),
+//    new ZipPackageExtractor());
+
+
 
 namespace Parser
 {
     public partial class MainWindow : Window
     {
-        public static SlackClient Slack { get; } = new SlackClient("https://hooks.slack.com/services/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");
+        public static SettingsWindow SettingsWindow { get; set; } = new SettingsWindow();
+
         public static PathOfExile.LogParser PoELogParser { get; } = new PathOfExile.LogParser();
         public static PathOfExile.Trader PoETrader { get; } = new PathOfExile.Trader();
-        public static Settings SettingsWindow { get; set; } = new Settings();
-        private readonly IUpdateManager _UpdateManager = new UpdateManager(new GithubPackageResolver("wrekklol", "Parser", "Parser-*.zip"), new ZipPackageExtractor());
-        //private readonly IUpdateManager _UpdateManager = new UpdateManager(
-        //    new LocalPackageResolver(@"C:\Users\Lars\source\repos\Parser\Builds\", "*.zip"),
-        //    new ZipPackageExtractor());
-
-#if DEBUG
-        public static ParserDebug PDebug { get; } = new ParserDebug();
-#endif
 
 
 
@@ -36,7 +36,8 @@ namespace Parser
         {
             InitializeComponent();
 
-            //_ = MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues);
+            if (PDebug.bShouldGetCurrency)
+                _ = MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues);
 
             Loaded += MainWindow_Loaded;
             PathOfExile.LogParser.OnNewLogEntry += AddListLogEntry;
@@ -61,7 +62,7 @@ namespace Parser
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            SettingsWindow.AddSettings();
+            ParserSettings.AddSettings();
         }
 
         private void OnGetCurrencyValues(string InData)
@@ -128,6 +129,8 @@ namespace Parser
 
         private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
         {
+            IUpdateManager _UpdateManager = new UpdateManager(new GithubPackageResolver("wrekklol", "Parser", "Parser-*.zip"), new ZipPackageExtractor());
+
             var check = await _UpdateManager.CheckForUpdatesAsync().ConfigureAwait(false);
 
             // If there are none, notify user and return
@@ -142,7 +145,6 @@ namespace Parser
             // Launch updater and exit
             _UpdateManager.LaunchUpdater(check.LastVersion);
             Close();
-            //Application.Current.Shutdown();
         }
     }
 }

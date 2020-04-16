@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
+using static Parser.Globals.Globals;
+
 //H:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt
 
 namespace Parser.PathOfExile
@@ -149,9 +151,9 @@ namespace Parser.PathOfExile
         }
 
 
-        protected override void OnAddSettings(Settings InSettings)
+        protected override void OnAddSettings()
         {
-            InSettings.AddSetting(new Label()
+            ParserSettings.AddSetting(new Label()
             {
                 Content = "Client Log Location",
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -162,22 +164,21 @@ namespace Parser.PathOfExile
                 FontStyle = FontStyles.Normal,
                 FontSize = 14
             });
-            ClientLogPath = InSettings.AddSetting<TextBox>("PoELogPath", new TextBox()
+            ClientLogPath = ParserSettings.AddSetting<TextBox>("PoELogPath", new TextBox()
             {
-                Text = "",
+                Text = @"H:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
                 TextWrapping = TextWrapping.Wrap,
                 MinWidth = 500,
                 MinHeight = 28.2033333333333
-            });
+            }, true);
         }
 
-        protected override void OnLoadSettings(Settings InSettings)
+        protected override void OnLoadSettings()
         {
-            string p = Environment.GetEnvironmentVariable("PoELogPath", EnvironmentVariableTarget.User);
-            ClientLogPath = InSettings.GetSetting<TextBox>("PoELogPath");
-            ClientLogPath.Text = p;
+            ClientLogPath = ParserSettings.GetSetting<TextBox>("PoELogPath");
+            ClientLogPath.Text = Config["PathofExileParser"]["LogPath"];
 
             if (!File.Exists(ParsedLogPath) || new FileInfo(ParsedLogPath).Length == 0)
                 return;
@@ -190,9 +191,9 @@ namespace Parser.PathOfExile
 
         }
 
-        protected override void OnSaveSettings(Settings InSettings)
+        protected override void OnSaveSettings()
         {
-            Environment.SetEnvironmentVariable("PoELogPath", ClientLogPath.Text, EnvironmentVariableTarget.User);
+            Config["PathofExileParser"]["LogPath"] = ClientLogPath.Text;
 
             if (RawLogEntries.Count > PARSENUM)
                 File.WriteAllText(ParsedLogPath, string.Empty);

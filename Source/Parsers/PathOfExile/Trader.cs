@@ -14,6 +14,7 @@ using static Parser.PathOfExile.StaticLibrary.TradeHelper;
 using static Parser.StaticLibrary.InputHelper;
 using static Parser.StaticLibrary.MiscLibrary;
 using static Parser.StaticLibrary.NativeMethods;
+using static Parser.Globals.Globals;
 
 using w = System.Windows;
 
@@ -24,7 +25,7 @@ namespace Parser.PathOfExile
         bool bShouldDraw = false;
         readonly Random r = new Random();
 
-        public TextBox GridDebug { get; private set; }
+        public ComboBox GridDebug { get; private set; }
 
 
 
@@ -50,7 +51,11 @@ namespace Parser.PathOfExile
             if (!bShouldDraw)
                 return;
 
-            ItemGrid Grid = ItemGrids["RegularStashTab"];
+            string GridToDebug = ParserSettings.GetSettingContent<string>("GridDebug");
+            if (!ItemGrids.ContainsKey(GridToDebug))
+                return;
+
+            ItemGrid Grid = ItemGrids[GridToDebug];
             for (int x = 0; x < Grid.Size.X; x++)
             {
                 for (int y = 0; y < Grid.Size.Y; y++)
@@ -84,7 +89,7 @@ namespace Parser.PathOfExile
                 }
                 case Key.W:
                 {
-                    ItemGrid Grid = ItemGrids["RegularStashTab"];
+                    ItemGrid Grid = ItemGrids[ParserSettings.GetSettingContent<string>("GridDebug")];
                     foreach (Task t in from T in Grid.Slots
                         from T1 in T
                         select Task.Run(() => MouseHelper.MoveMouse(T1.SlotCoord.X, T1.SlotCoord.Y, 12, 12, null)))
@@ -105,7 +110,7 @@ namespace Parser.PathOfExile
                     break;
                 case Key.R:
                 {
-                    ItemGrid Grid = ItemGrids["RegularStashTab"];
+                    ItemGrid Grid = ItemGrids[ParserSettings.GetSettingContent<string>("GridDebug")];
                     if (Grid.Slots.Count <= 0)
                         return;
 
@@ -173,31 +178,8 @@ namespace Parser.PathOfExile
 
 
 
-        protected override void OnAddSettings(Settings InSettings)
+        protected override void OnAddSettings()
         {
-#if DEBUG
-            InSettings.AddSetting(new Label()
-            {
-                Content = "Grid Debug",
-                HorizontalAlignment = w.HorizontalAlignment.Center,
-                VerticalAlignment = w.VerticalAlignment.Top,
-                HorizontalContentAlignment = w.HorizontalAlignment.Center,
-                VerticalContentAlignment = w.VerticalAlignment.Center,
-                FontWeight = w.FontWeights.ExtraBold,
-                FontStyle = w.FontStyles.Normal,
-                FontSize = 14
-            });
-            GridDebug = InSettings.AddSetting<TextBox>("GridDebug", new TextBox()
-            {
-                Text = "",
-                HorizontalAlignment = w.HorizontalAlignment.Center,
-                VerticalAlignment = w.VerticalAlignment.Top,
-                TextWrapping = w.TextWrapping.Wrap,
-                MinWidth = 500,
-                MinHeight = 28.2033333333333
-            });
-#endif
-
             foreach (var g in ItemGrids)
             {
                 Button FindSlotsButton = new Button()
@@ -212,7 +194,7 @@ namespace Parser.PathOfExile
                     FontSize = 14
                 };
                 FindSlotsButton.Click += (sender, EventArgs) => { FindSlots(g.Value.Name); };
-                InSettings.AddSetting($"Find{g.Value.Name}SlotsButton", FindSlotsButton);
+                ParserSettings.AddSetting<Button>($"Find{g.Value.Name}SlotsButton", FindSlotsButton);
             }
 
             Button ReloadGridsButton = new Button()
@@ -227,17 +209,18 @@ namespace Parser.PathOfExile
                 FontSize = 14
             };
             ReloadGridsButton.Click += (sender, EventArgs) => { LoadGrids(); };
-            InSettings.AddSetting($"ReloadGridsButton", ReloadGridsButton);
+            ParserSettings.AddSetting<Button>("ReloadGridsButton", ReloadGridsButton, true);
         }
 
-        protected override void OnLoadSettings(Settings InSettings)
+        protected override void OnLoadSettings()
         {
-
+            GridDebug = ParserSettings.GetSetting<ComboBox>("GridDebug");
+            GridDebug.SelectedItem = Config["Debug"]["Grid"];
         }
 
-        protected override void OnSaveSettings(Settings InSettings)
+        protected override void OnSaveSettings()
         {
-
+            Config["Debug"]["Grid"] = GridDebug.SelectedItem.ToString();
         }
     }
 }

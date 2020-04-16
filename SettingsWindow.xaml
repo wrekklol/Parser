@@ -1,4 +1,4 @@
-﻿<Window x:Class="Parser.Settings"
+﻿<Window x:Class="Parser.SettingsWindow"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"

@@ -11,13 +11,13 @@ namespace Parser
 
         public ParserBase()
         {
-            Settings.OnAddSettings += OnAddSettings;
-            Settings.OnLoadSettings += OnLoadSettings;
-            Settings.OnSaveSettings += OnSaveSettings;
+            ParserSettings.OnAddSettings += OnAddSettings;
+            ParserSettings.OnLoadSettings += OnLoadSettings;
+            ParserSettings.OnSaveSettings += OnSaveSettings;
         }
 
-        protected abstract void OnAddSettings(Settings InSettings);
-        protected abstract void OnLoadSettings(Settings InSettings);
-        protected abstract void OnSaveSettings(Settings InSettings);
+        protected abstract void OnAddSettings();
+        protected abstract void OnLoadSettings();
+        protected abstract void OnSaveSettings();
     }
 }
