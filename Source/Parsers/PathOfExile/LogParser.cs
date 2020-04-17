@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.Globals;
+using static Parser.Globals.GlobalStatics;
 
 //H:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt
 

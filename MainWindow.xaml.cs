@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.Globals;
+using static Parser.Globals.GlobalStatics;
 
 //if (Dispatcher.CheckAccess())
 //{

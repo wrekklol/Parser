@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.Globals;
+using static Parser.Globals.GlobalStatics;
 
 namespace Parser
 {
@@ -98,7 +98,7 @@ namespace Parser
         private void OnSaveSettings()
         {
             Config["SlackClient"]["Username"] = SlackUsername.Text;
-            Config["SlackClient"]["AccessUrl"] = AccessUrl.OriginalString;
+            Config["SlackClient"]["AccessUrl"] = AccessUrl?.OriginalString;
         }
     }
 

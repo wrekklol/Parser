@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.Globals;
+using static Parser.Globals.GlobalStatics;
 
 namespace Parser
 {
@@ -87,14 +87,30 @@ namespace Parser
                 if (!SettingsToAdd.ContainsKey(InName))
                     return default(T);
 
-                object ReturnVal = (SettingsToAdd[InName]) switch
+                UIElement Element = SettingsToAdd[InName];
+                if (Element == null)
+                    return default(T);
+
+                object RetVal = default(T);
+                switch (Element)
                 {
-                    TextBox t1 => t1.Text,
-                    ComboBox t2 => t2.SelectedItem.ToString(),
-                    _ => default(T),
+                    case TextBox tb:
+                        RetVal = tb.Text;
+                        break;
+                    case ComboBox cb:
+                        if (cb.SelectedItem != null)
+                            RetVal = cb.SelectedItem.ToString();
+                        break;
                 };
 
-                return (T)ReturnVal;
+                //object ReturnVal = (SettingsToAdd[InName]) switch
+                //{
+                //    TextBox t1 => t1.Text,
+                //    ComboBox t2 => t2.SelectedItem.ToString(),
+                //    _ => default(T),
+                //};
+
+                return (T)RetVal;
             }
             else
                 return MainWindow.SettingsWindow.Dispatcher.Invoke(new Func<T>(() => GetSettingContent<T>(InName)));

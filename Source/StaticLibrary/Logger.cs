@@ -7,32 +7,40 @@ namespace Parser.StaticLibrary
 {
     public static class Logger
     {
-        public static void WriteLine(string str, bool bAddSeperators = false)
-        {
-            if (string.IsNullOrEmpty(str))
-                return;
+        public static readonly string LogPath = @Directory.GetCurrentDirectory() + "\\log.txt";
+        public static readonly UTF8Encoding Encoding = new UTF8Encoding(false);
 
-            if (bAddSeperators)
+        public static void WriteLine(string InString, bool InbAddSeperators = false)
+        {
+            if (MainWindow.SettingsWindow.Dispatcher.CheckAccess())
             {
-                string CurTime = $"[{DateTime.Now}] ";
-                string[] lines =
+                if (string.IsNullOrEmpty(InString))
+                    return;
+
+                if (InbAddSeperators)
                 {
+                    string CurTime = $"[{DateTime.Now}] ";
+                    string[] lines =
+                    {
                     "--------------------------------------------------------------------------------------------------",
-                    str,
+                    InString,
                     "--------------------------------------------------------------------------------------------------"
                 };
 
-                foreach (string l in lines)
+                    foreach (string l in lines)
+                    {
+                        Console.WriteLine(l);
+                        File.AppendAllText(LogPath, $"{CurTime}{l}\n", Encoding);
+                    }
+                }
+                else
                 {
-                    Console.WriteLine(l);
-                    File.AppendAllText(@Directory.GetCurrentDirectory() + "\\log.txt", $"{CurTime}{l}\n", new UTF8Encoding(false));
+                    Console.WriteLine(InString);
+                    File.AppendAllText(LogPath, $"[{DateTime.Now}] {InString}\n", Encoding);
                 }
             }
             else
-            {
-                Console.WriteLine(str);
-                File.AppendAllText(@Directory.GetCurrentDirectory() + "\\log.txt", $"[{DateTime.Now}] {str}\n", new UTF8Encoding(false));
-            }
+                MainWindow.SettingsWindow.Dispatcher.Invoke(() => WriteLine(InString, InbAddSeperators));
         }
 
         public static void WriteLine(object obj, bool bAddSeperators = false)

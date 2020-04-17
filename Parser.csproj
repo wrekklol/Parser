@@ -43,12 +43,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="Python.Runtime">
-	    <HintPath>..\..\..\AppData\Local\Programs\Python\Python37\Lib\site-packages\Python.Runtime.dll</HintPath>
-	  </Reference>
-	</ItemGroup>
-
-	<ItemGroup>
 		<Compile Update="Properties\Resources.Designer.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>

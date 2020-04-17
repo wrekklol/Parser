@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Parser.Globals
 {
-    public static class Globals
+    public static class GlobalStatics
     {
         public static ParserDebug PDebug { get; } = new ParserDebug();
         public static SlackClient Slack { get; } = new SlackClient();

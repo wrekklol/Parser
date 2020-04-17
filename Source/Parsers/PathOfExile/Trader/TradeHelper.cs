@@ -97,9 +97,9 @@ namespace Parser.PathOfExile.StaticLibrary
     public static class TradeHelper
     {
         public static Dictionary<string, ItemGrid> ItemGrids { get; set; } = new Dictionary<string, ItemGrid>();
-        public static string ItemGridsPath { get; } = @Directory.GetCurrentDirectory() + $"\\ItemGrids.json";
+        public static string ItemGridsPath { get; } = @Directory.GetCurrentDirectory() + "\\Source\\Parsers\\PathOfExile\\ItemGrids.json";
         public static Dictionary<string, GameItem> ItemBases { get; set; } = new Dictionary<string, GameItem>();
-        public static string ItemBasesPath { get; } = @Directory.GetCurrentDirectory() + "\\ItemBases.json";
+        public static string ItemBasesPath { get; } = @Directory.GetCurrentDirectory() + "\\Source\\Parsers\\PathOfExile\\ItemBases.json";
 
 
 

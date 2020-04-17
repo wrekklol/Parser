@@ -4,13 +4,14 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.Globals;
+using static Parser.Globals.GlobalStatics;
 
 namespace Parser
 {
     public class ParserDebug
     {
         public bool bShouldGetCurrency { get; private set; } = true;
+        public bool bShouldPrintBTConstantly { get; private set; } = false;
 
         public ParserDebug()
         {
@@ -21,13 +22,16 @@ namespace Parser
 
             NativeMethods.AllocConsole();
 
-            //bShouldGetCurrency = false;
+            bShouldGetCurrency = false;
+            bShouldPrintBTConstantly = true;
 #endif
 
 
 
             if (!bShouldGetCurrency)
                 Logger.WriteLine("Warning: bShouldGetCurrency is false, which means no currency values will be set!");
+            if (bShouldPrintBTConstantly)
+                Logger.WriteLine("Warning: bShouldPrintBTConstantly is true, which causes lag!");
         }
 
 #if DEBUG
