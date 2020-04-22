@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Diagnostics;
+using System.Text;
 
 namespace Parser.StaticLibrary
 {
@@ -62,7 +63,19 @@ namespace Parser.StaticLibrary
             return NativeMethods.SetForegroundWindow(p.MainWindowHandle);
         }
 
-        public static Color GetColorAt(Point location)
+        public static string GetActiveWindowTitle()
+        {
+            const int nChars = 256;
+            StringBuilder Buff = new StringBuilder(nChars);
+            IntPtr handle = NativeMethods.GetForegroundWindow();
+
+            if (NativeMethods.GetWindowText(handle, Buff, nChars) > 0)
+                return Buff.ToString();
+
+            return "";
+        }
+
+        public static ParserColor GetColorAt(Point location)
         {
             Bitmap screenPixel = new Bitmap(1, 1, PixelFormat.Format32bppArgb);
             using (Graphics gdest = Graphics.FromImage(screenPixel))
@@ -81,6 +94,57 @@ namespace Parser.StaticLibrary
             screenPixel.Dispose();
 
             return retval;
+        }
+
+        public static byte[] ImageToByte(Image img)
+        {
+            ImageConverter converter = new ImageConverter();
+            return (byte[])converter.ConvertTo(img, typeof(byte[]));
+        }
+
+        public static byte[] ImageToByteMS(Image img)
+        {
+            using (var stream = new MemoryStream())
+            {
+                img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                return stream.ToArray();
+            }
+        }
+
+        public static Bitmap MakeGrayscale3(Bitmap original)
+        {
+            //create a blank bitmap the same size as original
+            Bitmap newBitmap = new Bitmap(original.Width, original.Height);
+
+            //get a graphics object from the new image
+            using (Graphics g = Graphics.FromImage(newBitmap))
+            {
+
+                //create the grayscale ColorMatrix
+                ColorMatrix colorMatrix = new ColorMatrix(
+                   new float[][]
+                   {
+             new float[] {.3f, .3f, .3f, 0, 0},
+             new float[] {.59f, .59f, .59f, 0, 0},
+             new float[] {.11f, .11f, .11f, 0, 0},
+             new float[] {0, 0, 0, 1, 0},
+             new float[] {0, 0, 0, 0, 1}
+                   });
+
+                //create some image attributes
+                using (ImageAttributes attributes = new ImageAttributes())
+                {
+
+                    //set the color matrix attribute
+                    attributes.SetColorMatrix(colorMatrix);
+
+                    //draw the original image on the new image
+                    //using the grayscale color matrix
+                    g.DrawImage(original, new Rectangle(0, 0, original.Width, original.Height),
+                                0, 0, original.Width, original.Height, GraphicsUnit.Pixel, attributes);
+                }
+            }
+            return newBitmap;
         }
 
 

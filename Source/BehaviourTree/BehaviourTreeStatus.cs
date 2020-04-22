@@ -14,6 +14,9 @@ namespace FluentBehaviourTree
 
         Success,
         Failure,
-        Running
+        Running,
+
+        SuccessWithStop,
+        FailureWithStop
     }
 }

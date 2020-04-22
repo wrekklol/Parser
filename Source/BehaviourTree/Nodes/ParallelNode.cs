@@ -37,6 +37,11 @@ namespace FluentBehaviourTree
             this.numRequiredToSucceed = numRequiredToSucceed;
         }
 
+        public string GetName()
+        {
+            return name;
+        }
+
         public BehaviourTreeStatus Tick()
         {
             var numChildrenSuceeded = 0;

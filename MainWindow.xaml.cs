@@ -3,11 +3,11 @@ using Onova;
 using Onova.Services;
 using Parser.StaticLibrary;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-
 using static Parser.Globals.GlobalStatics;
 
 //if (Dispatcher.CheckAccess())
@@ -15,6 +15,8 @@ using static Parser.Globals.GlobalStatics;
 //}
 //else
 //    Dispatcher.Invoke(new Action(() => AddListLogEntry(InLogEntry)));
+
+
 //private readonly IUpdateManager _UpdateManager = new UpdateManager(
 //    new LocalPackageResolver(@"C:\Users\Lars\source\repos\Parser\Builds\", "*.zip"),
 //    new ZipPackageExtractor());
@@ -36,6 +38,8 @@ namespace Parser
         {
             InitializeComponent();
 
+            ((App)Application.Current).WindowPlace.Register(this);
+
             if (PDebug.bShouldGetCurrency)
                 _ = MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues);
 
@@ -46,18 +50,52 @@ namespace Parser
             PoELogEntries.SelectionChanged += PoELogEntries_SelectionChanged;
 
             VersionText.Header = $"v{Assembly.GetExecutingAssembly().GetName().Version}";
+
+
+
+
+
+
+
+            //using (var Engine = new TesseractEngine(Directory.GetCurrentDirectory() + "\\tessdata", "eng", EngineMode.Default))
+            //{
+            //    //Bitmap iasjdi = ScreenCapture.CaptureActiveWindow();
+            //    //System.Drawing.Image uajsdua = MiscLibrary.MakeGrayscale3(iasjdi);
+            //    //byte[] asjid = MiscLibrary.ImageToByte(uajsdua);
+            //    //uajsdua.Save(@"C:\Users\Lars\source\repos\Parser\testimage.bmp");
+            //    //iasjdi.Dispose();
+            //    //uajsdua.Dispose();
+
+            //    PageIteratorLevel myLevel = PageIteratorLevel.Word;
+            //    using var img = Pix.LoadFromFile(@"C:\Users\Lars\source\repos\Parser\testimage.bmp");//Pix.LoadFromMemory(asjid);
+            //    using var page = Engine.Process(img);
+            //    using var iter = page.GetIterator();
+            //    iter.Begin();
+            //    do
+            //    {
+            //        if (iter.TryGetBoundingBox(myLevel, out var rect))
+            //        {
+            //            var curText = iter.GetText(myLevel);
+            //            Logger.WriteLine(curText);
+            //            // Your code here, 'rect' should containt the location of the text, 'curText' contains the actual text itself
+            //        }
+            //    } while (iter.Next(myLevel));
+            //}
+
+
+
         }
 
         private void PoELogEntries_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            PathOfExile.LogEntry LogEntry = (PoELogEntries.SelectedItem as ParserLogEntry)?.LogData as PathOfExile.LogEntry;
-            if (LogEntry == null || !LogEntry.IsTradeMessage())
-            {
-                BeginTradeButton.IsEnabled = false;
-                return;
-            }
+            //PathOfExile.LogEntry LogEntry = (PoELogEntries.SelectedItem as ParserLogEntry)?.LogData as PathOfExile.LogEntry;
+            //if (LogEntry == null || !LogEntry.IsTradeMessage())
+            //{
+            //    BeginTradeButton.IsEnabled = false;
+            //    return;
+            //}
 
-            BeginTradeButton.IsEnabled = true;
+            //BeginTradeButton.IsEnabled = true;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -79,9 +117,10 @@ namespace Parser
                 {
                     var CurrencyType = y.Value<string>("currencyTypeName");
                     var CurrencyValue = y.Value<JToken>("receive").Value<double>("value");
-                    PoELogParser.CurrencyValues.Add(Enum.Parse<PathOfExile.Currency>(PathOfExile.LogParser.GetRENAMETHISCurrencyName(CurrencyType), true), CurrencyValue);
-                    Logger.WriteLine($"{Enum.Parse<PathOfExile.Currency>(PathOfExile.LogParser.GetRENAMETHISCurrencyName(CurrencyType))} => {CurrencyValue}");
+                    PoELogParser.CurrencyValues.Add(Enum.Parse<PathOfExile.Currency>(PathOfExile.StaticLibrary.TradeHelper.GetTrimmedCurrencyName(CurrencyType), true), CurrencyValue);
+                    Logger.WriteLine($"{Enum.Parse<PathOfExile.Currency>(PathOfExile.StaticLibrary.TradeHelper.GetTrimmedCurrencyName(CurrencyType))} => {CurrencyValue}");
                 }
+                PoELogParser.CurrencyValues.Add(PathOfExile.Currency.UnknownCurrency, 0);
                 Logger.WriteLine("Done fetching currency values", true);
             }
         }
@@ -91,7 +130,7 @@ namespace Parser
         public void AddListLogEntry(PathOfExile.LogEntry InLogEntry)
         {
             ItemCollection LogList = PoELogEntries.Items;
-            if (InLogEntry != null && !LogList.Contains(InLogEntry) && InLogEntry.LogType != PathOfExile.LogType.Insignificant)
+            if (InLogEntry != null && !LogList.Contains(InLogEntry) && InLogEntry.IsPrintableLogType())
             {
                 ParserLogEntry l = new ParserLogEntry
                 {
@@ -112,7 +151,7 @@ namespace Parser
 
                 LogList.Add(l);
 
-                if (PathOfExile.TradeOffer.GetCurrencyWorth(InLogEntry.Offer) >= PathOfExile.LogParser.MINPRICEFORNOTIFY)
+                if (InLogEntry.IsTradeMessage() && PathOfExile.StaticLibrary.TradeHelper.GetCurrencyWorth(InLogEntry.Offer) >= PoELogParser.MinPriceForNotify)
                     Slack.PostMessage(InLogEntry.ToString(), "Notifier", Slack.SlackUsername.Text);
             }
         }
@@ -145,6 +184,21 @@ namespace Parser
             // Launch updater and exit
             _UpdateManager.LaunchUpdater(check.LastVersion);
             Close();
+        }
+
+
+
+        private void BeginTradeButton_Click(object sender, RoutedEventArgs e)
+        {
+#if DEBUG
+            PathOfExile.LogEntry LogEntry = (PoELogEntries.SelectedItem as ParserLogEntry)?.LogData as PathOfExile.LogEntry;
+            PoETrader.DoTrade(LogEntry);
+#endif
+        }
+
+        private void CancelTradeButton_Click(object sender, RoutedEventArgs e)
+        {
+            PoETrader.StopTrade();
         }
     }
 }

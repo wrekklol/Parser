@@ -23,7 +23,10 @@ namespace Parser.PathOfExile
 {
     public class Trader : ParserBase
     {
-        private TestBehaviour asd;
+        public List<ItemSlot> SellableItems = new List<ItemSlot>();
+
+        private TestBehaviour asd = null;
+        private InitSellablesBehaviour InitSellables = null;
         public ComboBox GridDebug { get; private set; }
 
         bool bShouldDraw = false;
@@ -35,9 +38,9 @@ namespace Parser.PathOfExile
 
             Keyboard.AddKeyDownHandler(MainWindowRef, (sender, e) => Task.Run(() => DebugTrade(sender, e)));
 
-            asd = new TestBehaviour();
-            asd.Init(this);
-            asd.Start();
+            //asd = new TestBehaviour();
+            //asd.Init(this);
+            //asd.Start();
 
             Task.Run(async () =>
             {
@@ -48,6 +51,26 @@ namespace Parser.PathOfExile
                 }
             });
         }
+
+        public void DoTrade(LogEntry InTradeOffer)
+        {
+            if ((asd == null || !asd.IsRunning()) && InTradeOffer != null)
+            {
+                asd = new TestBehaviour();
+                asd.Init(InTradeOffer);
+                asd.Start();
+            }
+        }
+
+        public void StopTrade()
+        {
+            if (asd != null)
+            {
+                asd.Stop();
+            }
+        }
+
+
 
         private void DrawSlots()
         {
@@ -87,6 +110,17 @@ namespace Parser.PathOfExile
                 case Key.E:
                     bShouldDraw = !bShouldDraw;
                     break;
+                case Key.T:
+                {
+                    DoTrade(new LogEntry());
+                    break;
+                }
+                case Key.R:
+                {
+                    Logger.WriteLine($"Party check: {CheckIsInParty()}");
+                    Logger.WriteLine($"Hideout check: {CheckPlayerInHideout()}");
+                    break;
+                }
             }
 #endif
         }
@@ -95,6 +129,7 @@ namespace Parser.PathOfExile
 
         protected override void OnAddSettings()
         {
+#if DEBUG
             foreach (var g in ItemGrids)
             {
                 Button FindSlotsButton = new Button()
@@ -112,6 +147,25 @@ namespace Parser.PathOfExile
                 ParserSettings.AddSetting<Button>($"Find{g.Value.Name}SlotsButton", FindSlotsButton);
             }
 
+            Button InitSellablesButton = new Button()
+            {
+                Content = $"Init Sellables",
+                HorizontalAlignment = w.HorizontalAlignment.Center,
+                VerticalAlignment = w.VerticalAlignment.Top,
+                HorizontalContentAlignment = w.HorizontalAlignment.Center,
+                VerticalContentAlignment = w.VerticalAlignment.Center,
+                FontWeight = w.FontWeights.ExtraBold,
+                FontStyle = w.FontStyles.Normal,
+                FontSize = 14
+            };
+            InitSellablesButton.Click += (sender, EventArgs) => 
+            {
+                InitSellables = new InitSellablesBehaviour();
+                InitSellables.Init(this);
+                InitSellables.Start();
+            };
+            ParserSettings.AddSetting<Button>("InitSellablesButton", InitSellablesButton);
+
             Button ReloadGridsButton = new Button()
             {
                 Content = $"Reload Grids",
@@ -125,6 +179,7 @@ namespace Parser.PathOfExile
             };
             ReloadGridsButton.Click += (sender, EventArgs) => { LoadGrids(); };
             ParserSettings.AddSetting<Button>("ReloadGridsButton", ReloadGridsButton, true);
+#endif
         }
 
         protected override void OnLoadSettings() { }

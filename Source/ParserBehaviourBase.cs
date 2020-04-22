@@ -1,4 +1,5 @@
 ﻿using FluentBehaviourTree;
+using Humanizer;
 using Parser.StaticLibrary;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace Parser
 
         public object Data { get; private set; }
         public bool bWantsToStop { get; private set; } = false;
+        public BehaviourTreeStatus StopStatus { get; private set; } = BehaviourTreeStatus.None;
 
         protected Random r { get; } = new Random();
 
@@ -28,7 +30,9 @@ namespace Parser
 
         public void Start()
         {
-            //Thread thread1 = new Thread(() =>
+            bWantsToStop = false;
+            StopStatus = BehaviourTreeStatus.None;
+
             Task.Run(async () =>
             {
                 OnStart();
@@ -36,26 +40,33 @@ namespace Parser
 
                 while (true)
                 {
-                    Tree.Tick();
+                    BehaviourTreeStatus TreeStatus = Tree.Tick();
                     OnTick();
-                    await Task.Delay(0).ConfigureAwait(false);
 
+                    if (TreeStatus == BehaviourTreeStatus.FailureWithStop || TreeStatus == BehaviourTreeStatus.SuccessWithStop)
+                        Stop(TreeStatus);
+
+                    await Task.Delay(0).ConfigureAwait(false);
                     if (bWantsToStop)
                     {
                         OnStop();
-                        Logger.WriteLine($"BehaviourTree: Behaviour \"{GetType().Name}\" was stopped.");
+                        Logger.WriteLine($"BehaviourTree: Behaviour \"{GetType().Name}\" was stopped and it was a {StopStatus.ToString().Humanize(LetterCasing.LowerCase)}.");
 
                         break;
                     }
                 }
             });
-            //);
-            //thread1.Start();
         }
 
-        public void Stop()
+        public void Stop(BehaviourTreeStatus InStopStatus = BehaviourTreeStatus.Success)
         {
             bWantsToStop = true;
+            StopStatus = InStopStatus;
+        }
+
+        public bool IsRunning()
+        {
+            return !bWantsToStop && StopStatus != BehaviourTreeStatus.None;
         }
 
         protected abstract void BuildTree();

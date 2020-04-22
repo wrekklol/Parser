@@ -12,9 +12,53 @@ namespace Parser.Globals
 
 
         // Config
-        private static string CfgPath { get; } = @Directory.GetCurrentDirectory() + "\\config.ini";
-        private static FileIniDataParser CfgParser { get; } = new FileIniDataParser();
-        public static IniData Config { get; } = InitConfig();
+        private static string CfgPath
+        {
+            get
+            {
+                if (_CfgPath == null)
+                    return _CfgPath = @Directory.GetCurrentDirectory() + "\\config.ini";
+
+                return _CfgPath;
+            }
+            set
+            {
+                _CfgPath = value;
+            }
+        }
+        private static string _CfgPath;
+        private static FileIniDataParser CfgParser
+        {
+            get
+            {
+                if (_CfgParser == null)
+                    return _CfgParser = new FileIniDataParser();
+
+                return _CfgParser;
+            }
+            set
+            {
+                _CfgParser = value;
+            }
+        }
+        private static FileIniDataParser _CfgParser;
+        public static IniData Config 
+        {
+            get
+            {
+                if (_Config == null)
+                    return _Config = InitConfig();
+
+                return _Config;
+            }
+            set
+            {
+                _Config = value;
+            }
+        }
+        private static IniData _Config;
+
+
 
         private static IniData InitConfig()
         {
@@ -33,6 +77,14 @@ namespace Parser.Globals
         public static void SaveConfig()
         {
             CfgParser.WriteFile(CfgPath, Config);
+        }
+
+        public static bool GetConfig(out string OutString, string InCategory, string InProperty)
+        {
+            string a = Config[InCategory][InProperty];
+            OutString = string.IsNullOrEmpty(a) ? "" : a;
+
+            return !string.IsNullOrEmpty(OutString);
         }
     }
 }

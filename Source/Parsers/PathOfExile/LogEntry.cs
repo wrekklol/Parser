@@ -8,7 +8,12 @@ namespace Parser.PathOfExile
     public enum LogType
     {
         Insignificant,
+
         AfkNotification,
+        EnterHideoutNotification,
+        LeaveHideoutNotification,
+        TradeAcceptedNotification,
+        TradeCancelledNotification,
 
         NormalMessage,
         TradeMessage,
@@ -151,30 +156,30 @@ namespace Parser.PathOfExile
         public Currency CurrencyType { get; set; }
         public string League { get; set; }
 
-        public static double GetCurrencyWorth(double InCurrencyAmount, Currency InCurrencyType)
-        {
-            return InCurrencyAmount * MainWindow.PoELogParser.CurrencyValues[InCurrencyType];
-        }
+        //public static double GetCurrencyWorth(double InCurrencyAmount, Currency InCurrencyType)
+        //{
+        //    return InCurrencyAmount * MainWindow.PoELogParser.CurrencyValues[InCurrencyType];
+        //}
 
-        public static double GetCurrencyWorth(TradeOffer InOffer)
-        {
-            return InOffer != null ? GetCurrencyWorth(InOffer.CurrencyAmount, InOffer.CurrencyType) : 0;
-        }
+        //public static double GetCurrencyWorth(TradeOffer InOffer)
+        //{
+        //    return InOffer != null ? GetCurrencyWorth(InOffer.CurrencyAmount, InOffer.CurrencyType) : 0;
+        //}
 
-        public static Currency ParseCurrencyType(string InRawType)
-        {
-            return InRawType switch
-            {
-                "alch" => Currency.OrbofAlchemy,
-                "alchemy" => Currency.OrbofAlchemy,
-                "chaos" => Currency.ChaosOrb,
-                "exa" => Currency.ExaltedOrb,
-                "exalted" => Currency.ExaltedOrb,
-                "mir" => Currency.MirrorofKalandra,
-                "mirror" => Currency.MirrorofKalandra,
-                _ => Currency.UnknownCurrency
-            };
-        }
+        //public static Currency ParseCurrencyType(string InRawType)
+        //{
+        //    return InRawType.Trim() switch
+        //    {
+        //        "alch" => Currency.OrbofAlchemy,
+        //        "alchemy" => Currency.OrbofAlchemy,
+        //        "chaos" => Currency.ChaosOrb,
+        //        "exa" => Currency.ExaltedOrb,
+        //        "exalted" => Currency.ExaltedOrb,
+        //        "mir" => Currency.MirrorofKalandra,
+        //        "mirror" => Currency.MirrorofKalandra,
+        //        _ => Currency.UnknownCurrency
+        //    };
+        //}
     }
 
     public class LogEntry
@@ -182,13 +187,18 @@ namespace Parser.PathOfExile
         public string Message { get; set; } = "";
         public string PlayerName { get; set; } = "";
         public TradeOffer Offer { get; set; }
-        public LogType LogType { get; set; } = LogType.Insignificant;
+        public LogType LogEntryType { get; set; } = LogType.Insignificant;
         public DateTime LogTime { get; set; }
         public string Raw { get; set; } = "";
 
         public bool IsTradeMessage()
         {
             return Message.StartsWith("Hi, I would like to buy your", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public bool IsPrintableLogType()
+        {
+            return LogEntryType == LogType.TradeMessage || LogEntryType == LogType.AfkNotification;
         }
 
 
@@ -235,7 +245,7 @@ namespace Parser.PathOfExile
         public override string ToString()
         {
             var TimeDisplay = $"[{LogTime.TimeOfDay.ToString()}] ";
-            return LogType switch
+            return LogEntryType switch
             {
                 LogType.AfkNotification => $"{TimeDisplay}You are AFK.",
                 LogType.NormalMessage => $"{TimeDisplay}{PlayerName}: {Message}",

@@ -32,6 +32,11 @@ namespace FluentBehaviourTree
             this.fn=fn;
         }
 
+        public string GetName()
+        {
+            return name;
+        }
+
         public BehaviourTreeStatus Tick()
         {
             BehaviourTreeStatus r = fn();

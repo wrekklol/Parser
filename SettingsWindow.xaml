@@ -16,10 +16,11 @@
         mc:Ignorable="d"
         Title="Settings" Height="450" Width="800" SizeToContent="WidthAndHeight" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterOwner">
     <Grid>
-        <StackPanel x:Name="SettingsPanel" MaxWidth="800" MaxHeight="450">
-            <!--<Label Content="Client Log Location" HorizontalAlignment="Center" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="Bold" FontStyle="Normal" FontSize="14"/>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxWidth="800" MaxHeight="450">
+            <StackPanel x:Name="SettingsPanel">
+                <!--<Label Content="Client Log Location" HorizontalAlignment="Center" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="Bold" FontStyle="Normal" FontSize="14"/>
             <TextBox HorizontalAlignment="Center" x:Name="PathToPoELog" TextWrapping="Wrap" VerticalAlignment="Top" MinWidth="500" MinHeight="28.2033333333333"/>-->
-        </StackPanel>
-
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

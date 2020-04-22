@@ -13,6 +13,8 @@ namespace Parser
         public SettingsWindow()
         {
             InitializeComponent();
+
+            ((App)Application.Current).WindowPlace.Register(this);
         }
 
         public void Settings_Closing(object sender, CancelEventArgs e)

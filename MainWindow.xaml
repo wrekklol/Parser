@@ -26,7 +26,7 @@
                 <MenuItem Header="v0.0.0.0" x:Name="VersionText" IsHitTestVisible="False" IsTabStop="False" Focusable="False"/>
             </MenuItem>
         </Menu>
-        <Button Content="Cancel Auto Trade" x:Name="CancelTradeButton" HorizontalAlignment="Right" Margin="0,0,195,10" VerticalAlignment="Bottom" Width="200" IsCancel="True" IsEnabled="False"/>
-        <Button Content="Begin Auto Trade" x:Name="BeginTradeButton" HorizontalAlignment="Left" Margin="195,0,0,10" VerticalAlignment="Bottom" Width="200" IsDefault="True" IsEnabled="False"/>
+        <Button Content="Cancel Auto Trade" x:Name="CancelTradeButton" HorizontalAlignment="Right" Margin="0,0,195,10" VerticalAlignment="Bottom" Width="200" IsCancel="True" IsEnabled="True" Click="CancelTradeButton_Click"/>
+        <Button Content="Begin Auto Trade" x:Name="BeginTradeButton" HorizontalAlignment="Left" Margin="195,0,0,10" VerticalAlignment="Bottom" Width="200" IsDefault="True" IsEnabled="True" Click="BeginTradeButton_Click"/>
     </Grid>
 </Window>

@@ -1,9 +1,11 @@
 ﻿using Newtonsoft.Json;
+using Parser.PathOfExile.StaticLibrary;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,7 +20,10 @@ namespace Parser.PathOfExile
     {
         public const int PARSENUM = 20; // Num of log entries to parse
         public const int INVALIDATETIME = 60; // How many seconds before an entry is too "old"
-        public const double MINPRICEFORNOTIFY = 10; // How many chaos worth for notify
+
+        public double MinPriceForNotify { get { return double.Parse(MinPriceTextBox.Text); }  } // How many chaos worth for notify
+        public TextBox MinPriceTextBox { get; set; }
+
 
         public string ClientLog { get; set; } = "";
         public TextBox ClientLogPath { get; set; }
@@ -117,38 +122,41 @@ namespace Parser.PathOfExile
                     LogEntry.PlayerName = PlayerMessage[0].Remove(0, 6);
                     LogEntry.Message = PlayerMessage[1].TrimStart();
 
-                    if(LogEntry.IsTradeMessage())
+                    if (LogEntry.IsTradeMessage())
                     {
-                        LogEntry.LogType = LogType.TradeMessage;
+                        LogEntry.LogEntryType = LogType.TradeMessage;
 
                         string[] Currency = LogEntry.Message.Substring(" listed for ", " in ").Split(' ');
                         LogEntry.Offer = new TradeOffer
                         {
                             Item = LogEntry.Message.Substring(" your ", " listed for "),
                             CurrencyAmount = double.Parse(Currency[0], CultureInfo.InvariantCulture.NumberFormat),
-                            CurrencyType = TradeOffer.ParseCurrencyType(Currency[1]),
+                            CurrencyType = TradeHelper.ParseCurrencyType(Currency[1]),
                             League = LogEntry.Message.Substring(" in ", " ")
                         };
                     }
 
-                    LogEntry.LogType = LogEntry.IsTradeMessage() ? LogType.TradeMessage : LogType.NormalMessage;
+                    LogEntry.LogEntryType = LogEntry.IsTradeMessage() ? LogType.TradeMessage : LogType.NormalMessage;
                 }
+                else if (LogMessage.EndsWith(" the area.", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    LogEntry.LogEntryType = LogMessage.Contains(" has joined") ? LogType.EnterHideoutNotification : LogType.LeaveHideoutNotification;
+                    LogEntry.PlayerName = LogMessage.Substring(": ", " has ").Trim();
+                }
+                else if (LogMessage.StartsWith(": Trade accepted.", StringComparison.InvariantCultureIgnoreCase))
+                    LogEntry.LogEntryType = LogType.TradeAcceptedNotification;
+                else if (LogMessage.StartsWith(": Trade cancelled.", StringComparison.InvariantCultureIgnoreCase))
+                    LogEntry.LogEntryType = LogType.TradeCancelledNotification;
                 else if (LogMessage.StartsWith(": AFK mode is now ON.", StringComparison.InvariantCultureIgnoreCase))
-                    LogEntry.LogType = LogType.AfkNotification;
+                    LogEntry.LogEntryType = LogType.AfkNotification;
                 else
-                    LogEntry.LogType = LogType.Insignificant;
+                    LogEntry.LogEntryType = LogType.Insignificant;
 
                 LogEntries.Add(LogEntry);
                 OnNewLogEntry?.Invoke(LogEntry);
             }
         }
 
-        public static string GetRENAMETHISCurrencyName(string InCurrencyName)
-        {
-            return InCurrencyName != null
-                ? InCurrencyName.Replace("\"", "").Replace(" ", "").Replace("'", "").Replace("-", "")
-                : "";
-        }
 
 
         protected override void OnAddSettings()
@@ -173,14 +181,41 @@ namespace Parser.PathOfExile
                 MinWidth = 500,
                 MinHeight = 28.2033333333333
             }, true);
+
+            ParserSettings.AddSetting(new Label()
+            {
+                Content = "Minimum Price in Chaos for Notify",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                FontWeight = FontWeights.ExtraBold,
+                FontStyle = FontStyles.Normal,
+                FontSize = 14
+            });
+            MinPriceTextBox = ParserSettings.AddSetting<TextBox>("MinPrice", new TextBox()
+            {
+                Text = "10",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                TextWrapping = TextWrapping.Wrap,
+                MinWidth = 500,
+                MinHeight = 28.2033333333333
+            }, true);
+            MinPriceTextBox.PreviewTextInput += MinPriceTextBox_PreviewTextInput;
+            DataObject.AddPastingHandler(MinPriceTextBox, MinPriceTextBox_OnPaste);
         }
 
         protected override void OnLoadSettings()
         {
-            ClientLogPath = ParserSettings.GetSetting<TextBox>("PoELogPath");
-            string s = Config["PathofExileParser"]["LogPath"];
-            if (!string.IsNullOrEmpty(s))
-                ClientLogPath.Text = s;
+            //ClientLogPath = ParserSettings.GetSetting<TextBox>("PoELogPath");
+            string LogPathConfig = Config["PathofExileParser"]["LogPath"];
+            if (!string.IsNullOrEmpty(LogPathConfig))
+                ClientLogPath.Text = LogPathConfig;
+
+            string MinPriceConfig = Config["PathofExileParser"]["MinPriceForNotify"];
+            if (!string.IsNullOrEmpty(MinPriceConfig))
+                MinPriceTextBox.Text = MinPriceConfig;
 
             if (!File.Exists(ParsedLogPath) || new FileInfo(ParsedLogPath).Length == 0)
                 return;
@@ -196,6 +231,7 @@ namespace Parser.PathOfExile
         protected override void OnSaveSettings()
         {
             Config["PathofExileParser"]["LogPath"] = ClientLogPath.Text;
+            Config["PathofExileParser"]["MinPriceForNotify"] = MinPriceTextBox.Text;
 
             if (RawLogEntries.Count > PARSENUM)
                 File.WriteAllText(ParsedLogPath, string.Empty);
@@ -206,6 +242,23 @@ namespace Parser.PathOfExile
             using StreamWriter sw = new StreamWriter(ParsedLogPath);
             using JsonWriter jw = new JsonTextWriter(sw);
             s.Serialize(jw, RawLogEntries);
+        }
+
+        private void MinPriceTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void MinPriceTextBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+        {
+            var bIsText = e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true);
+            if (!bIsText)
+                return;
+
+            Regex regex = new Regex("[^0-9]+");
+            if (!regex.IsMatch(e.SourceDataObject.GetData(DataFormats.UnicodeText) as string))
+                e.CancelCommand();
         }
     }
 }

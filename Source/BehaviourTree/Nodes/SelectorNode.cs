@@ -25,6 +25,11 @@ namespace FluentBehaviourTree
             this.name = name;
         }
 
+        public string GetName()
+        {
+            return name;
+        }
+
         public BehaviourTreeStatus Tick()
         {
             foreach (var child in children)

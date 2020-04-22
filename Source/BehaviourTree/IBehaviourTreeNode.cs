@@ -14,5 +14,7 @@ namespace FluentBehaviourTree
         /// Update the time of the behaviour tree.
         /// </summary>
         BehaviourTreeStatus Tick();
+
+        string GetName();
     }
 }

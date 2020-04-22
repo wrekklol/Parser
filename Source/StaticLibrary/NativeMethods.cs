@@ -7,6 +7,9 @@ namespace Parser.StaticLibrary
 {
     public static class NativeMethods
     {
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        internal static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+
         [DllImport("user32.dll")]
         internal static extern int GetWindowLong(IntPtr hwnd, int index);
 
@@ -24,6 +27,9 @@ namespace Parser.StaticLibrary
 
         [DllImport("user32.dll")]
         internal static extern int ReleaseDC(IntPtr hwnd, IntPtr dc);
+
+        [DllImport("user32.dll")]
+        internal static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll")]
         internal static extern bool SetForegroundWindow(IntPtr hWnd);

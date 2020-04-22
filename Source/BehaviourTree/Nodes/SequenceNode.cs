@@ -14,6 +14,7 @@ namespace FluentBehaviourTree
         /// Name of the node.
         /// </summary>
         private string name;
+        private string SkipToName = "";
 
         /// <summary>
         /// List of child nodes.
@@ -25,16 +26,46 @@ namespace FluentBehaviourTree
             this.name = name;
         }
 
+        public string GetName()
+        {
+            return name;
+        }
+
+        public void SkipTo(string InNodeName)
+        {
+            SkipToName = InNodeName;
+        }
+
         public BehaviourTreeStatus Tick()
         {
-            foreach (var child in children)
+            for (int i = 0; i < children.Count; i++)
             {
+                var child = children[i];
+                if (child.GetName() != SkipToName)
+                    continue;
+
                 var childStatus = child.Tick();
-                if (childStatus != BehaviourTreeStatus.Success)
+                switch (childStatus)
                 {
-                    return childStatus;
+                    case BehaviourTreeStatus.None:
+                    case BehaviourTreeStatus.Failure:
+                    case BehaviourTreeStatus.FailureWithStop:
+                        return BehaviourTreeStatus.FailureWithStop; //todo: add this to the other nodes
+                    case BehaviourTreeStatus.SuccessWithStop:
+                        return BehaviourTreeStatus.SuccessWithStop;
+                    case BehaviourTreeStatus.Running:
+                        i--;
+                        break;
                 }
             }
+            //foreach (var child in children)
+            //{
+            //    var childStatus = child.Tick();
+            //    if (childStatus != BehaviourTreeStatus.Success)
+            //    {
+            //        return childStatus;
+            //    }
+            //}
 
             return BehaviourTreeStatus.Success;
         }
