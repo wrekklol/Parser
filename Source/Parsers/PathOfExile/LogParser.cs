@@ -124,7 +124,7 @@ namespace Parser.PathOfExile
 
                     if (LogEntry.IsTradeMessage())
                     {
-                        LogEntry.LogEntryType = LogType.TradeMessage;
+                        LogEntry.LogEntryType = LogType.TradeMessage; //delete this
 
                         string[] Currency = LogEntry.Message.Substring(" listed for ", " in ").Split(' ');
                         LogEntry.Offer = new TradeOffer
