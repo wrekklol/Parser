@@ -18,12 +18,12 @@
     <Grid>
         <ListBox Margin="10,33,10,47" x:Name="LogEntries" Width="780"/>
         <Menu Margin="0,0,0,406">
-            <MenuItem Header="_File" Height="28" Background="{DynamicResource MaterialDesignToolBarBackground}">
-                <MenuItem Header="_Settings" Click="OpenSettings_Click"/>
-                <MenuItem Header="_Clear Logs" Click="ClearLogs_Click"/>
-                <MenuItem IsHitTestVisible="False" IsTabStop="False" Focusable="False"/>
-                <MenuItem Header="Check for _Updates" Click="CheckUpdate_Click"/>
-                <MenuItem Header="v0.0.0.0" x:Name="VersionText" IsHitTestVisible="False" IsTabStop="False" Focusable="False"/>
+            <MenuItem Header="_File" Height="28" Background="{DynamicResource MaterialDesignToolBarBackground}" FontFamily="Roboto">
+                <MenuItem Header="_Settings" Click="OpenSettings_Click" FontFamily="Roboto"/>
+                <MenuItem Header="_Clear Logs" Click="ClearLogs_Click" FontFamily="Roboto"/>
+                <MenuItem IsHitTestVisible="False" IsTabStop="False" Focusable="False" FontFamily="Roboto"/>
+                <MenuItem Header="Check for _Updates" Click="CheckUpdate_Click" FontFamily="Roboto"/>
+                <MenuItem Header="v0.0.0.0" x:Name="VersionText" IsHitTestVisible="False" IsTabStop="False" Focusable="False" FontFamily="Roboto"/>
             </MenuItem>
         </Menu>
     </Grid>

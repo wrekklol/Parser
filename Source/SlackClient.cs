@@ -17,8 +17,8 @@ namespace Parser
         private Uri AccessUrl { get; set; } = null;
         private readonly Encoding _encoding = new UTF8Encoding();
 
-        public TextBox SlackUsername { get; set; }
-        public TextBox SlackAccessUrl { get; set; }
+        public SettingsTextBox SlackUsername { get; set; }
+        public SettingsTextBox SlackAccessUrl { get; set; }
 
         public SlackClient()
         {
@@ -67,48 +67,9 @@ namespace Parser
 
         private void OnAddSettings()
         {
-            ParserSettings.AddSetting(new Label()
-            {
-                Content = "Slack Username",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                FontWeight = FontWeights.ExtraBold,
-                FontStyle = FontStyles.Normal,
-                FontSize = 14
-            });
-            SlackUsername = ParserSettings.AddSetting<TextBox>("SlackUsername", new TextBox()
-            {
-                Text = GetConfig("SlackClient", "AccessUrl", "U011432SY95"),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                TextWrapping = TextWrapping.Wrap,
-                MinWidth = 500,
-                MinHeight = 28.2033333333333
-            }, true);
-
-            ParserSettings.AddSetting(new Label()
-            {
-                Content = "Slack AccessUrl",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                FontWeight = FontWeights.ExtraBold,
-                FontStyle = FontStyles.Normal,
-                FontSize = 14
-            });
-            SlackAccessUrl = ParserSettings.AddSetting<TextBox>("SlackAccessUrl", new TextBox()
-            {
-                Text = GetConfig("SlackClient", "AccessUrl"),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                TextWrapping = TextWrapping.Wrap,
-                MinWidth = 500,
-                MinHeight = 28.2033333333333
-            }, true);
-            SlackAccessUrl.TextChanged += SlackAccessUrl_TextChanged;
+            SlackUsername = ParserSettings.AddSetting<SettingsTextBox>("SlackUsername", new SettingsTextBox("Slack Username: ", GetConfig("SlackClient", "Username", "U011432SY95")));
+            SlackAccessUrl = ParserSettings.AddSetting<SettingsTextBox>("SlackAccessUrl", new SettingsTextBox("Slack AccessUrl: ", GetConfig("SlackClient", "AccessUrl")));
+            SlackAccessUrl._TextBox.TextChanged += SlackAccessUrl_TextChanged;
         }
 
         private void OnLoadSettings()

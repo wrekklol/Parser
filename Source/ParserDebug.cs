@@ -1,7 +1,7 @@
 ﻿using Parser.StaticLibrary;
 using System.Windows;
 using System.Windows.Controls;
-
+using System.Windows.Media;
 using static Parser.StaticLibrary.Config;
 
 namespace Parser
@@ -39,8 +39,9 @@ namespace Parser
                 VerticalAlignment = VerticalAlignment.Top,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                FontWeight = FontWeights.ExtraBold,
+                FontWeight = FontWeights.Bold,
                 FontStyle = FontStyles.Normal,
+                FontFamily = new FontFamily("Roboto"),
                 FontSize = 14,
                 IsChecked = bool.Parse(GetConfig("Debug", "ShouldFetchCurrency", bShouldGetCurrency.ToString()))
             });

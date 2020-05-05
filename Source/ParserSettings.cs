@@ -40,35 +40,17 @@ namespace Parser
             SaveConfig();
         }
 
-        public static T AddSetting<T>(UIElement InUI, bool InbAddSeparator = false) where T : UIElement
+        public static T AddSetting<T>(UIElement InUI) where T : UIElement
         {
-            return AddSetting<T>(Guid.NewGuid().ToString(), InUI, InbAddSeparator);
+            return AddSetting<T>(Guid.NewGuid().ToString(), InUI);
         }
 
-        public static T AddSetting<T>(string InName, UIElement InUI, bool InbAddSeparator = false) where T : UIElement
+        public static T AddSetting<T>(string InName, UIElement InUI) where T : UIElement
         {
             if (string.IsNullOrEmpty(InName))
                 InName = Guid.NewGuid().ToString();
 
             SettingsToAdd.Add(InName, InUI);
-
-            if (InbAddSeparator)
-            {
-                for (int i = 0; i < 2; i++)
-                {
-                    SettingsToAdd.Add(Guid.NewGuid().ToString(), new Label()
-                    {
-                        Content = "",//"_________________________________________________________________________________________________________________________________________________________________",
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Top,
-                        HorizontalContentAlignment = HorizontalAlignment.Center,
-                        VerticalContentAlignment = VerticalAlignment.Center,
-                        FontWeight = FontWeights.ExtraBold,
-                        FontStyle = FontStyles.Normal,
-                        FontSize = 14
-                    });
-                }
-            }
 
             return (T)SettingsToAdd[InName];
         }

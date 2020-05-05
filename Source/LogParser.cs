@@ -21,8 +21,8 @@ namespace Parser
         public static int PARSENUM { get; set; } = 20; // Num of log entries to parse
         public static int INVALIDATETIME { get; set; } = 60; // How many seconds before an entry is too "old"
 
-        public TextBox ClientLogPathTextBox { get; set; }
-        public TextBox MinPriceTextBox { get; set; }
+        public SettingsTextBox ClientLogPathTextBox { get; set; }
+        public SettingsTextBox MinPriceTextBox { get; set; }
 
         public static string ClientLogPath { get; set; } = GetConfig("Parser", "LogPath", @"C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt"); //= Cfg["Parser"]["LogPath"];
         public static string ParsedLogPath { get; } = App.AppPath + "\\ParsedLogs.json";
@@ -159,58 +159,13 @@ namespace Parser
 
         protected void OnAddSettings()
         {
-            var test1 = ParserSettings.AddSetting(new SettingsTextBox("Test1: ", "Lort"));
-            var test2 = ParserSettings.AddSetting(new SettingsTextBox("Test2: ", "Fisse", true));
+            ClientLogPathTextBox = ParserSettings.AddSetting<SettingsTextBox>("LogPath", new SettingsTextBox("Client Log Path: ", ClientLogPath));
+            ClientLogPathTextBox._TextBox.TextChanged += ClientLogPathTextBox_TextChanged;
 
-
-
-
-
-            ParserSettings.AddSetting(new Label()
-            {
-                Content = "Client Log Location",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                FontWeight = FontWeights.ExtraBold,
-                FontStyle = FontStyles.Normal,
-                FontSize = 14
-            });
-            ClientLogPathTextBox = ParserSettings.AddSetting<TextBox>("LogPath", new TextBox()
-            {
-                Text = ClientLogPath,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                TextWrapping = TextWrapping.Wrap,
-                MinWidth = 500,
-                MinHeight = 28.2033333333333
-            }, true);
-            ClientLogPathTextBox.TextChanged += ClientLogPathTextBox_TextChanged;
-
-            ParserSettings.AddSetting(new Label()
-            {
-                Content = "Minimum Price in Chaos for Notify",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                FontWeight = FontWeights.ExtraBold,
-                FontStyle = FontStyles.Normal,
-                FontSize = 14
-            });
-            MinPriceTextBox = ParserSettings.AddSetting<TextBox>("MinPrice", new TextBox()
-            {
-                Text = MinPriceForNotify.ToString(),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                TextWrapping = TextWrapping.Wrap,
-                MinWidth = 500,
-                MinHeight = 28.2033333333333
-            }, true);
+            MinPriceTextBox = ParserSettings.AddSetting<SettingsTextBox>("MinPrice", new SettingsTextBox("Minimum Price in Chaos for Notify: ", MinPriceForNotify.ToString()));
             MinPriceTextBox.PreviewTextInput += MinPriceTextBox_PreviewTextInput;
             DataObject.AddPastingHandler(MinPriceTextBox, MinPriceTextBox_OnPaste);
-            MinPriceTextBox.TextChanged += MinPriceTextBox_TextChanged;
+            MinPriceTextBox._TextBox.TextChanged += MinPriceTextBox_TextChanged;
         }
 
         protected void OnLoadSettings()

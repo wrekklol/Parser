@@ -6,6 +6,7 @@ using System;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Parser
 {
@@ -68,6 +69,7 @@ namespace Parser
                     Text = InLogEntry.ToString(),
                     FontWeight = FontWeights.Heavy,
                     FontStyle = FontStyles.Normal,
+                    FontFamily = new FontFamily("Roboto"),
                     FontSize = 14,
                     //Content = InLogEntry.ToString(),
                     LogData = InLogEntry,

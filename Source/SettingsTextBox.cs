@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Parser.StaticLibrary;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 namespace Parser
 {
@@ -12,22 +10,30 @@ namespace Parser
         public Label _Label { get; }
         public TextBox _TextBox { get; }
 
+        public string Text 
+        { 
+            get
+            {
+                return _TextBox.Text;
+            } 
+        }
+
+
+
         public SettingsTextBox(string InLabelText, string InTextBoxText, bool InbAddSeparator = false) : base()
         {
             Orientation = Orientation.Horizontal;
 
-            Width = double.NaN;
-            Height = double.NaN;
-
             _Label = new Label()
             {
                 Content = InLabelText,
-                HorizontalAlignment = HorizontalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Left,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                FontWeight = FontWeights.ExtraBold,
+                FontWeight = FontWeights.Bold,
                 FontStyle = FontStyles.Normal,
+                FontFamily = new FontFamily("Roboto"),
                 FontSize = 14
             };
             Children.Add(_Label);
@@ -35,11 +41,17 @@ namespace Parser
             _TextBox = new TextBox()
             {
                 Text = InTextBoxText,
-                HorizontalAlignment = HorizontalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
                 TextWrapping = TextWrapping.Wrap,
-                MinWidth = 500,
-                MinHeight = 28.2033333333333
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Width = 500 - UIHelper.MeasureString(_Label).Width,
+                MinHeight = 28.2033333333333,
+                FontWeight = FontWeights.Regular,
+                FontStyle = FontStyles.Normal,
+                FontFamily = new FontFamily("Roboto"),
+                FontSize = 14
             };
             Children.Add(_TextBox);
 
@@ -54,6 +66,7 @@ namespace Parser
                     VerticalContentAlignment = VerticalAlignment.Center,
                     FontWeight = FontWeights.ExtraBold,
                     FontStyle = FontStyles.Normal,
+                    FontFamily = new FontFamily("Roboto"),
                     FontSize = 14
                 });
             }
