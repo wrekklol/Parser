@@ -2,16 +2,10 @@
 using IniParser.Model;
 using System.IO;
 
-namespace Parser.Globals
+namespace Parser.StaticLibrary
 {
-    public static class GlobalStatics
+    public static class Config
     {
-        public static ParserDebug PDebug { get; } = new ParserDebug();
-        public static SlackClient Slack { get; } = new SlackClient();
-
-
-
-        // Config
         private static string CfgPath
         {
             get
@@ -42,21 +36,21 @@ namespace Parser.Globals
             }
         }
         private static FileIniDataParser _CfgParser;
-        public static IniData Config 
+        public static IniData Cfg 
         {
             get
             {
-                if (_Config == null)
-                    return _Config = InitConfig();
+                if (_Cfg == null)
+                    return _Cfg = InitConfig();
 
-                return _Config;
+                return _Cfg;
             }
             set
             {
-                _Config = value;
+                _Cfg = value;
             }
         }
-        private static IniData _Config;
+        private static IniData _Cfg;
 
 
 
@@ -76,12 +70,12 @@ namespace Parser.Globals
 
         public static void SaveConfig()
         {
-            CfgParser.WriteFile(CfgPath, Config);
+            CfgParser.WriteFile(CfgPath, Cfg);
         }
 
         public static bool GetConfig(out string OutString, string InCategory, string InProperty)
         {
-            string a = Config[InCategory][InProperty];
+            string a = Cfg[InCategory][InProperty];
             OutString = string.IsNullOrEmpty(a) ? "" : a;
 
             return !string.IsNullOrEmpty(OutString);

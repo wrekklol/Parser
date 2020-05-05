@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Parser.PathOfExile
+namespace Parser
 {
     public class GameItem
     {

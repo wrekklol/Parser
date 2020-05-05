@@ -11,9 +11,7 @@ namespace Parser.StaticLibrary
 
         public static string GetClipboardText()
         {
-            if (!IsClipboardFormatAvailable(CF_UNICODETEXT))
-                return null;
-            if (!OpenClipboard(IntPtr.Zero))
+            if (!IsClipboardFormatAvailable(CF_UNICODETEXT) || !OpenClipboard(IntPtr.Zero))
                 return null;
 
             string data = null;
@@ -32,6 +30,17 @@ namespace Parser.StaticLibrary
             return data;
         }
 
+        public static void SetClipboardText(string InText)
+        {
+            if (!IsClipboardFormatAvailable(CF_UNICODETEXT) || !OpenClipboard(IntPtr.Zero))
+                return;
+
+            var ptr = Marshal.StringToHGlobalUni(InText);
+            SetClipboardData(13, ptr);
+            CloseClipboard();
+            Marshal.FreeHGlobal(ptr);
+        }
+
         public static bool ClearClipboard()
         {
             if (!OpenClipboard(IntPtr.Zero))
@@ -46,7 +55,7 @@ namespace Parser.StaticLibrary
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1069:Enums values should not be duplicated", Justification = "<Pending>")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "<Pending>")]
-    public enum VK : int
+    public enum VK : int //todo: delete
     {
         ///<summary>
         ///Left mouse button

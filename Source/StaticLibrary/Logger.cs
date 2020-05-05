@@ -12,7 +12,7 @@ namespace Parser.StaticLibrary
 
         public static void WriteLine(string InString, bool InbAddSeperators = false)
         {
-            if (MainWindow.SettingsWindow.Dispatcher.CheckAccess())
+            if (App.SettingsWindow.Dispatcher.CheckAccess())
             {
                 if (string.IsNullOrEmpty(InString))
                     return;
@@ -40,7 +40,7 @@ namespace Parser.StaticLibrary
                 }
             }
             else
-                MainWindow.SettingsWindow.Dispatcher.Invoke(() => WriteLine(InString, InbAddSeperators));
+                App.SettingsWindow.Dispatcher.Invoke(() => WriteLine(InString, InbAddSeperators));
         }
 
         public static void WriteLine(object obj, bool bAddSeperators = false)
@@ -48,19 +48,5 @@ namespace Parser.StaticLibrary
             WriteLine(obj?.ToString(), bAddSeperators);
 
         }
-
-        //public static void Write(string str, bool bAddSeperators = false)
-        //{
-        //    if (string.IsNullOrEmpty(str))
-        //        return;
-
-        //    Console.Write(str);
-        //    File.AppendAllText(@Directory.GetCurrentDirectory() + "\\Log.txt", $"[{DateTime.Now}] {str}\n", new UTF8Encoding(false));
-        //}
-
-        //public static void Write(object obj, bool bAddSeperators = false)
-        //{
-        //    Write(obj?.ToString(), bAddSeperators);
-        //}
     }
 }

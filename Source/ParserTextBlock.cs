@@ -5,7 +5,7 @@ using System.Windows.Controls;
 
 namespace Parser
 {
-    public class ParserLogEntry : TextBlock
+    public class ParserTextBlock : TextBlock
     {
         public object LogData { get; set; }
     }

@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Parser.PathOfExile.StaticLibrary;
+using Parser.StaticLibrary;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,72 +10,57 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.GlobalStatics;
+using static Parser.StaticLibrary.Config;
 
 //H:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt
 
-namespace Parser.PathOfExile
+namespace Parser
 {
-    public class LogParser : ParserBase
+    public class LogParser
     {
-        public const int PARSENUM = 20; // Num of log entries to parse
-        public const int INVALIDATETIME = 60; // How many seconds before an entry is too "old"
+        public static int PARSENUM { get; set; } = 20; // Num of log entries to parse
+        public static int INVALIDATETIME { get; set; } = 60; // How many seconds before an entry is too "old"
 
-        public double MinPriceForNotify { get { return double.Parse(MinPriceTextBox.Text); }  } // How many chaos worth for notify
+        public TextBox ClientLogPathTextBox { get; set; }
         public TextBox MinPriceTextBox { get; set; }
 
+        public static string ClientLogPath { get; set; } = Cfg["Parser"]["LogPath"];
+        public static string ParsedLogPath { get; } = @Directory.GetCurrentDirectory() + "\\ParsedLogs.json";
+        public static double MinPriceForNotify { get; set; } = double.Parse(Cfg["Parser"]["MinPriceForNotify"]); // How many chaos worth for notify
 
-        public string ClientLog { get; set; } = "";
-        public TextBox ClientLogPath { get; set; }
-        public string ParsedLogPath { get; } = @Directory.GetCurrentDirectory() + "\\ParsedLogs.json";
-
-        public List<string> RawLogEntries { get; private set; } = new List<string>();
-        public List<LogEntry> LogEntries { get; private set; } = new List<LogEntry>();
-        public Dictionary<Currency, double> CurrencyValues { get; } = new Dictionary<Currency, double>() { { Currency.ChaosOrb, 1 }, { Currency.UnknownCurrency, 0 } };
+        public static List<string> RawLogEntries { get; private set; } = new List<string>();
+        public static List<LogEntry> LogEntries { get; private set; } = new List<LogEntry>();
+        public static Dictionary<GameCurrency, double> CurrencyValues { get; } = new Dictionary<GameCurrency, double>() { { GameCurrency.ChaosOrb, 1 }, { GameCurrency.UnknownCurrency, 0 } };
 
         public static event Action<LogEntry> OnNewLogEntry;
 
 
 
-        public LogParser() : base()
+        public LogParser()
         {
-            MainWindowRef.Loaded += (sender, e) => 
-            {
-                Task.Run(async () =>
-                {
-                    while (true)
-                    {
-                        TryReadLog();
-                        await Task.Delay(100).ConfigureAwait(false);
-                    }
-                });
-            };
-        }
+            ParserSettings.OnAddSettings += OnAddSettings;
+            ParserSettings.OnLoadSettings += OnLoadSettings;
+            ParserSettings.OnSaveSettings += OnSaveSettings;
 
-        private void TryReadLog()
-        {
-            if (MainWindowRef.Dispatcher.CheckAccess())
+            Task.Run(async () =>
             {
-                if (ClientLogPath != null && File.Exists(@ClientLogPath.Text))
-                    ReadLog();
-            }
-            else
-            {
-                try
+                while (true)
                 {
-                    MainWindowRef.Dispatcher?.Invoke(TryReadLog);
+                    if (App.bMainWindowInitialized && File.Exists(@ClientLogPath))
+                        ReadLog();
+
+                    await Task.Delay(100).ConfigureAwait(false);
                 }
-                catch (TaskCanceledException) { }
-            }
+            });
         }
 
-        private void ReadLog()
+        public void ReadLog()
         {
-            using StreamReader LogReader = new StreamReader(File.Open(@ClientLogPath.Text, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), true);
+            using StreamReader LogReader = new StreamReader(File.Open(@ClientLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), true);
             LogReader.BaseStream.Seek(0, SeekOrigin.End);
 
             int i = 0;
-            while ((i < PARSENUM + 1) && (LogReader.BaseStream.Position > 0))
+            while (i < PARSENUM + 1 && LogReader.BaseStream.Position > 0)
             {
                 LogReader.BaseStream.Position--;
                 int c = LogReader.BaseStream.ReadByte();
@@ -84,11 +69,18 @@ namespace Parser.PathOfExile
                     LogReader.BaseStream.Position--;
 
                 if (c == Convert.ToInt32('\n'))
-                    ++i;
+                    i++;
             }
 
             string str = LogReader.ReadToEnd();
-            RawLogEntries = new List<string>(collection: str.Replace("\r", "", StringComparison.InvariantCultureIgnoreCase).Split('\n').Where(s => !string.IsNullOrWhiteSpace(s)).Distinct());
+            RawLogEntries = new List<string>
+            (
+                str
+                .Replace("\r", "", StringComparison.InvariantCultureIgnoreCase)
+                .Split('\n')
+                .Where(s => !string.IsNullOrWhiteSpace(s) && s.IndexOf("acf", 20, 20, StringComparison.Ordinal) != -1)
+                .Distinct()
+            );
             LogReader.Close();
 
             ParseLog();
@@ -101,46 +93,42 @@ namespace Parser.PathOfExile
 
             foreach (string RawLogEntry in RawLogEntries)
             {
-                if (!char.IsDigit(RawLogEntry[0]))
-                    continue;
-
-                string[] str = RawLogEntry.Split(' ', 8); //todo: rename str
+                string[] EntryData = RawLogEntry.Split(' ', 8); //todo: rename str
                 LogEntry LogEntry = new LogEntry
                 {
-                    LogTime = DateTime.Parse(str[0] + " " + str[1], null, DateTimeStyles.AssumeLocal),
+                    LogTime = DateTime.Parse(EntryData[0] + " " + EntryData[1], null, DateTimeStyles.AssumeLocal),
                     Raw = RawLogEntry
                 };
 
-                TimeSpan asdd = DateTime.Now - LogEntry.LogTime;
-                if (LogEntries.Contains(LogEntry) || str.Length <= 7 || asdd.TotalSeconds > INVALIDATETIME)
+                if (EntryData.Length <= 7 || (DateTime.Now - LogEntry.LogTime).TotalSeconds > INVALIDATETIME || LogEntries.Contains(LogEntry))
                     continue;
 
-                string LogMessage = str[7];
+                string LogMessage = EntryData[7];
                 if (LogMessage.StartsWith("@From", StringComparison.InvariantCultureIgnoreCase))
                 {
+                    LogEntry.LogEntryType = LogType.NormalMessage;
+
                     string[] PlayerMessage = LogMessage.Split(':', 2);
                     LogEntry.PlayerName = PlayerMessage[0].Remove(0, 6);
                     LogEntry.Message = PlayerMessage[1].TrimStart();
 
                     if (LogEntry.IsTradeMessage())
                     {
-                        LogEntry.LogEntryType = LogType.TradeMessage; //delete this
+                        LogEntry.LogEntryType = LogType.TradeMessage;
 
                         string[] Currency = LogEntry.Message.Substring(" listed for ", " in ").Split(' ');
-                        LogEntry.Offer = new TradeOffer
+                        LogEntry.Offer = new GameTradeOffer
                         {
                             Item = LogEntry.Message.Substring(" your ", " listed for "),
                             CurrencyAmount = double.Parse(Currency[0], CultureInfo.InvariantCulture.NumberFormat),
-                            CurrencyType = TradeHelper.ParseCurrencyType(Currency[1]),
+                            CurrencyType = CurrencyHelper.ParseCurrencyType(Currency[1]),
                             League = LogEntry.Message.Substring(" in ", " ")
                         };
                     }
-
-                    LogEntry.LogEntryType = LogEntry.IsTradeMessage() ? LogType.TradeMessage : LogType.NormalMessage;
                 }
                 else if (LogMessage.EndsWith(" the area.", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    LogEntry.LogEntryType = LogMessage.Contains(" has joined") ? LogType.EnterHideoutNotification : LogType.LeaveHideoutNotification;
+                    LogEntry.LogEntryType = LogMessage.Contains(" has joined", StringComparison.InvariantCultureIgnoreCase) ? LogType.EnterHideoutNotification : LogType.LeaveHideoutNotification;
                     LogEntry.PlayerName = LogMessage.Substring(": ", " has ").Trim();
                 }
                 else if (LogMessage.StartsWith(": Trade accepted.", StringComparison.InvariantCultureIgnoreCase))
@@ -157,9 +145,19 @@ namespace Parser.PathOfExile
             }
         }
 
+        public List<LogEntry> GetEntriesOfType(LogType InLogType)
+        {
+            return LogEntries.Where(l => l.LogEntryType == InLogType).ToList();
+        }
+
+        public List<LogEntry> GetEntriesOfType(List<LogType> InLogTypes)
+        {
+            return LogEntries.Where(l => InLogTypes.Contains(l.LogEntryType)).ToList();
+        }
 
 
-        protected override void OnAddSettings()
+
+        protected void OnAddSettings()
         {
             ParserSettings.AddSetting(new Label()
             {
@@ -172,7 +170,7 @@ namespace Parser.PathOfExile
                 FontStyle = FontStyles.Normal,
                 FontSize = 14
             });
-            ClientLogPath = ParserSettings.AddSetting<TextBox>("PoELogPath", new TextBox()
+            ClientLogPathTextBox = ParserSettings.AddSetting<TextBox>("LogPath", new TextBox()
             {
                 Text = @"H:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt",
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -181,6 +179,7 @@ namespace Parser.PathOfExile
                 MinWidth = 500,
                 MinHeight = 28.2033333333333
             }, true);
+            ClientLogPathTextBox.TextChanged += ClientLogPathTextBox_TextChanged;
 
             ParserSettings.AddSetting(new Label()
             {
@@ -204,16 +203,16 @@ namespace Parser.PathOfExile
             }, true);
             MinPriceTextBox.PreviewTextInput += MinPriceTextBox_PreviewTextInput;
             DataObject.AddPastingHandler(MinPriceTextBox, MinPriceTextBox_OnPaste);
+            MinPriceTextBox.TextChanged += MinPriceTextBox_TextChanged;
         }
 
-        protected override void OnLoadSettings()
+        protected void OnLoadSettings()
         {
-            //ClientLogPath = ParserSettings.GetSetting<TextBox>("PoELogPath");
-            string LogPathConfig = Config["PathofExileParser"]["LogPath"];
+            string LogPathConfig = Cfg["Parser"]["LogPath"];
             if (!string.IsNullOrEmpty(LogPathConfig))
-                ClientLogPath.Text = LogPathConfig;
+                ClientLogPathTextBox.Text = LogPathConfig;
 
-            string MinPriceConfig = Config["PathofExileParser"]["MinPriceForNotify"];
+            string MinPriceConfig = Cfg["Parser"]["MinPriceForNotify"];
             if (!string.IsNullOrEmpty(MinPriceConfig))
                 MinPriceTextBox.Text = MinPriceConfig;
 
@@ -225,13 +224,12 @@ namespace Parser.PathOfExile
 
             foreach (string Entry in LoadedEntries)
                 LogEntries.Add(new LogEntry() { Raw = Entry }); //todo: define var which holds the loaded entries, and compare them with RawLogEntries in the ReadLog func
-
         }
 
-        protected override void OnSaveSettings()
+        protected void OnSaveSettings()
         {
-            Config["PathofExileParser"]["LogPath"] = ClientLogPath.Text;
-            Config["PathofExileParser"]["MinPriceForNotify"] = MinPriceTextBox.Text;
+            Cfg["Parser"]["LogPath"] = ClientLogPathTextBox.Text;
+            Cfg["Parser"]["MinPriceForNotify"] = MinPriceTextBox.Text;
 
             if (RawLogEntries.Count > PARSENUM)
                 File.WriteAllText(ParsedLogPath, string.Empty);
@@ -242,6 +240,11 @@ namespace Parser.PathOfExile
             using StreamWriter sw = new StreamWriter(ParsedLogPath);
             using JsonWriter jw = new JsonTextWriter(sw);
             s.Serialize(jw, RawLogEntries);
+        }
+
+        private void ClientLogPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ClientLogPath = ClientLogPathTextBox.Text;
         }
 
         private void MinPriceTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
@@ -259,6 +262,11 @@ namespace Parser.PathOfExile
             Regex regex = new Regex("[^0-9]+");
             if (!regex.IsMatch(e.SourceDataObject.GetData(DataFormats.UnicodeText) as string))
                 e.CancelCommand();
+        }
+
+        private void MinPriceTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            MinPriceForNotify = double.Parse(MinPriceTextBox.Text);
         }
     }
 }

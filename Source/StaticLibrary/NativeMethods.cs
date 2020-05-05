@@ -38,6 +38,9 @@ namespace Parser.StaticLibrary
         internal static extern IntPtr GetClipboardData(uint uFormat);
 
         [DllImport("user32.dll")]
+        internal static extern bool SetClipboardData(uint uFormat, IntPtr data);
+
+        [DllImport("user32.dll")]
         internal static extern bool IsClipboardFormatAvailable(uint format);
 
         [DllImport("user32.dll", SetLastError = true)]

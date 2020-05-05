@@ -69,13 +69,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Source\Parsers\PathOfExile\ItemBases.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="tessdata\eng.traineddata">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="tessdata\pdf.ttf">
+		<None Update="ItemBases.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

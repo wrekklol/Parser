@@ -14,7 +14,8 @@ namespace Parser
         {
             InitializeComponent();
 
-            ((App)Application.Current).WindowPlace.Register(this);
+            //((App)Application.Current).WindowPlace.Register(this);
+            App.WindowPlace.Register(this);
         }
 
         public void Settings_Closing(object sender, CancelEventArgs e)

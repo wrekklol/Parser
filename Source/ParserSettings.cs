@@ -1,11 +1,9 @@
-﻿using Parser.PathOfExile.StaticLibrary;
-using Parser.StaticLibrary;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.GlobalStatics;
+using static Parser.StaticLibrary.Config;
 
 namespace Parser
 {
@@ -19,7 +17,7 @@ namespace Parser
 
         public static void AddSettings()
         {
-            SettingsWindow sw = MainWindow.SettingsWindow;
+            SettingsWindow sw = App.SettingsWindow;
 
             OnAddSettings?.Invoke();
 
@@ -82,7 +80,7 @@ namespace Parser
 
         public static T GetSettingContent<T>(string InName) where T : IConvertible
         {
-            if (MainWindow.SettingsWindow.Dispatcher.CheckAccess())
+            if (App.SettingsWindow.Dispatcher.CheckAccess())
             {
                 if (!SettingsToAdd.ContainsKey(InName))
                     return default(T);
@@ -103,17 +101,10 @@ namespace Parser
                         break;
                 };
 
-                //object ReturnVal = (SettingsToAdd[InName]) switch
-                //{
-                //    TextBox t1 => t1.Text,
-                //    ComboBox t2 => t2.SelectedItem.ToString(),
-                //    _ => default(T),
-                //};
-
                 return (T)RetVal;
             }
             else
-                return MainWindow.SettingsWindow.Dispatcher.Invoke(new Func<T>(() => GetSettingContent<T>(InName)));
+                return App.SettingsWindow.Dispatcher.Invoke(new Func<T>(() => GetSettingContent<T>(InName)));
         }
 
         public static UIElement AddSetting(UIElement InUI)

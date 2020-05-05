@@ -18,8 +18,6 @@
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto" MaxWidth="800" MaxHeight="450">
             <StackPanel x:Name="SettingsPanel">
-                <!--<Label Content="Client Log Location" HorizontalAlignment="Center" VerticalAlignment="Top" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="Bold" FontStyle="Normal" FontSize="14"/>
-            <TextBox HorizontalAlignment="Center" x:Name="PathToPoELog" TextWrapping="Wrap" VerticalAlignment="Top" MinWidth="500" MinHeight="28.2033333333333"/>-->
             </StackPanel>
         </ScrollViewer>
     </Grid>

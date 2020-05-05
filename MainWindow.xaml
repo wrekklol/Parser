@@ -16,7 +16,7 @@
         mc:Ignorable="d"
         Title="Parser" Height="450" Width="800" ResizeMode="NoResize" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner">
     <Grid>
-        <ListBox Margin="10,33,10,47" x:Name="PoELogEntries" Width="780"/>
+        <ListBox Margin="10,33,10,47" x:Name="LogEntries" Width="780"/>
         <Menu Margin="0,0,0,406">
             <MenuItem Header="_File" Height="28" Background="{DynamicResource MaterialDesignToolBarBackground}">
                 <MenuItem Header="_Settings" Click="OpenSettings_Click"/>
@@ -26,7 +26,5 @@
                 <MenuItem Header="v0.0.0.0" x:Name="VersionText" IsHitTestVisible="False" IsTabStop="False" Focusable="False"/>
             </MenuItem>
         </Menu>
-        <Button Content="Cancel Auto Trade" x:Name="CancelTradeButton" HorizontalAlignment="Right" Margin="0,0,195,10" VerticalAlignment="Bottom" Width="200" IsCancel="True" IsEnabled="True" Click="CancelTradeButton_Click"/>
-        <Button Content="Begin Auto Trade" x:Name="BeginTradeButton" HorizontalAlignment="Left" Margin="195,0,0,10" VerticalAlignment="Bottom" Width="200" IsDefault="True" IsEnabled="True" Click="BeginTradeButton_Click"/>
     </Grid>
 </Window>

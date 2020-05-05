@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-using static Parser.Globals.GlobalStatics;
+using static Parser.StaticLibrary.Config;
 
 namespace Parser
 {
@@ -86,19 +86,19 @@ namespace Parser
         private void OnLoadSettings()
         {
             SlackUsername = ParserSettings.GetSetting<TextBox>("SlackUsername");
-            string s = Config["SlackClient"]["Username"];
+            string s = Cfg["SlackClient"]["Username"];
             if (!string.IsNullOrEmpty(s))
                 SlackUsername.Text = s;
 
-            string s2 = Config["SlackClient"]["AccessUrl"];
+            string s2 = Cfg["SlackClient"]["AccessUrl"];
             if (!string.IsNullOrEmpty(s2))
                 AccessUrl = new Uri(s2);
         }
 
         private void OnSaveSettings()
         {
-            Config["SlackClient"]["Username"] = SlackUsername.Text;
-            Config["SlackClient"]["AccessUrl"] = AccessUrl?.OriginalString;
+            Cfg["SlackClient"]["Username"] = SlackUsername.Text;
+            Cfg["SlackClient"]["AccessUrl"] = AccessUrl?.OriginalString;
         }
     }
 
