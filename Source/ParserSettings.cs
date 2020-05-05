@@ -13,7 +13,7 @@ namespace Parser
         public static event Action OnLoadSettings;
         public static event Action OnSaveSettings;
 
-        public static volatile Dictionary<string, UIElement> SettingsToAdd = new Dictionary<string, UIElement>();
+        public static volatile SortedDictionary<string, UIElement> SettingsToAdd = new SortedDictionary<string, UIElement>();
 
         public static void AddSettings()
         {

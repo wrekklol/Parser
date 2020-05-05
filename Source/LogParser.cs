@@ -24,9 +24,9 @@ namespace Parser
         public TextBox ClientLogPathTextBox { get; set; }
         public TextBox MinPriceTextBox { get; set; }
 
-        public static string ClientLogPath { get; set; } = Cfg["Parser"]["LogPath"];
-        public static string ParsedLogPath { get; } = @Directory.GetCurrentDirectory() + "\\ParsedLogs.json";
-        public static double MinPriceForNotify { get; set; } = double.Parse(Cfg["Parser"]["MinPriceForNotify"]); // How many chaos worth for notify
+        public static string ClientLogPath { get; set; } = GetConfig("Parser", "LogPath", @"C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt"); //= Cfg["Parser"]["LogPath"];
+        public static string ParsedLogPath { get; } = App.AppPath + "\\ParsedLogs.json";
+        public static double MinPriceForNotify { get; set; } = double.Parse(GetConfig("Parser", "MinPriceForNotify", "10")); //= double.Parse(Cfg["Parser"]["MinPriceForNotify"]); // How many chaos worth for notify
 
         public static List<string> RawLogEntries { get; private set; } = new List<string>();
         public static List<LogEntry> LogEntries { get; private set; } = new List<LogEntry>();
@@ -159,6 +159,13 @@ namespace Parser
 
         protected void OnAddSettings()
         {
+            var test1 = ParserSettings.AddSetting(new SettingsTextBox("Test1: ", "Lort"));
+            var test2 = ParserSettings.AddSetting(new SettingsTextBox("Test2: ", "Fisse", true));
+
+
+
+
+
             ParserSettings.AddSetting(new Label()
             {
                 Content = "Client Log Location",
@@ -172,7 +179,7 @@ namespace Parser
             });
             ClientLogPathTextBox = ParserSettings.AddSetting<TextBox>("LogPath", new TextBox()
             {
-                Text = @"H:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt",
+                Text = ClientLogPath,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
                 TextWrapping = TextWrapping.Wrap,
@@ -194,7 +201,7 @@ namespace Parser
             });
             MinPriceTextBox = ParserSettings.AddSetting<TextBox>("MinPrice", new TextBox()
             {
-                Text = "10",
+                Text = MinPriceForNotify.ToString(),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
                 TextWrapping = TextWrapping.Wrap,
@@ -208,14 +215,6 @@ namespace Parser
 
         protected void OnLoadSettings()
         {
-            string LogPathConfig = Cfg["Parser"]["LogPath"];
-            if (!string.IsNullOrEmpty(LogPathConfig))
-                ClientLogPathTextBox.Text = LogPathConfig;
-
-            string MinPriceConfig = Cfg["Parser"]["MinPriceForNotify"];
-            if (!string.IsNullOrEmpty(MinPriceConfig))
-                MinPriceTextBox.Text = MinPriceConfig;
-
             if (!File.Exists(ParsedLogPath) || new FileInfo(ParsedLogPath).Length == 0)
                 return;
 

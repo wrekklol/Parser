@@ -11,7 +11,7 @@ namespace Parser.StaticLibrary
             get
             {
                 if (_CfgPath == null)
-                    return _CfgPath = @Directory.GetCurrentDirectory() + "\\config.ini";
+                    return _CfgPath = App.AppPath + "\\config.ini";
 
                 return _CfgPath;
             }
@@ -73,12 +73,19 @@ namespace Parser.StaticLibrary
             CfgParser.WriteFile(CfgPath, Cfg);
         }
 
-        public static bool GetConfig(out string OutString, string InCategory, string InProperty)
+        public static bool GetConfig(out string OutString, string InCategory, string InProperty, string InDefaultValue = "")
         {
-            string a = Cfg[InCategory][InProperty];
-            OutString = string.IsNullOrEmpty(a) ? "" : a;
+            string c = Cfg[InCategory][InProperty];
+            bool b = string.IsNullOrEmpty(c);
+            OutString = b ? InDefaultValue : c;
 
-            return !string.IsNullOrEmpty(OutString);
+            return !b;
+        }
+
+        public static string GetConfig(string InCategory, string InProperty, string InDefaultValue = "")
+        {
+            string c = Cfg[InCategory][InProperty];
+            return string.IsNullOrEmpty(Cfg[InCategory][InProperty]) ? InDefaultValue : c;
         }
     }
 }

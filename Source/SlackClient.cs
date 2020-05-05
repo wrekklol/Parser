@@ -18,6 +18,7 @@ namespace Parser
         private readonly Encoding _encoding = new UTF8Encoding();
 
         public TextBox SlackUsername { get; set; }
+        public TextBox SlackAccessUrl { get; set; }
 
         public SlackClient()
         {
@@ -41,7 +42,7 @@ namespace Parser
 
         public void PostMessage(Payload p)
         {
-            if(AccessUrl == null)
+            if (AccessUrl == null)
             {
                 Logger.WriteLine("Error: Slack hook url was null or invalid.");
                 return;
@@ -53,8 +54,13 @@ namespace Parser
                 ["payload"] = JsonConvert.SerializeObject(p)
             };
 
-            //The response text is usually "ok"  
+            // The response text is usually "ok"  
             string r = _encoding.GetString(c.UploadValues(AccessUrl, "POST", d));
+        }
+
+        public Uri CreateAccessUrl(string InUrl)
+        {
+            return !string.IsNullOrEmpty(InUrl) ? new Uri(InUrl) : null;
         }
 
 
@@ -74,35 +80,55 @@ namespace Parser
             });
             SlackUsername = ParserSettings.AddSetting<TextBox>("SlackUsername", new TextBox()
             {
-                Text = "U011432SY95",
+                Text = GetConfig("SlackClient", "AccessUrl", "U011432SY95"),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
                 TextWrapping = TextWrapping.Wrap,
                 MinWidth = 500,
                 MinHeight = 28.2033333333333
             }, true);
+
+            ParserSettings.AddSetting(new Label()
+            {
+                Content = "Slack AccessUrl",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                FontWeight = FontWeights.ExtraBold,
+                FontStyle = FontStyles.Normal,
+                FontSize = 14
+            });
+            SlackAccessUrl = ParserSettings.AddSetting<TextBox>("SlackAccessUrl", new TextBox()
+            {
+                Text = GetConfig("SlackClient", "AccessUrl"),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                TextWrapping = TextWrapping.Wrap,
+                MinWidth = 500,
+                MinHeight = 28.2033333333333
+            }, true);
+            SlackAccessUrl.TextChanged += SlackAccessUrl_TextChanged;
         }
 
         private void OnLoadSettings()
         {
-            SlackUsername = ParserSettings.GetSetting<TextBox>("SlackUsername");
-            string s = Cfg["SlackClient"]["Username"];
-            if (!string.IsNullOrEmpty(s))
-                SlackUsername.Text = s;
-
-            string s2 = Cfg["SlackClient"]["AccessUrl"];
-            if (!string.IsNullOrEmpty(s2))
-                AccessUrl = new Uri(s2);
+            AccessUrl = CreateAccessUrl(SlackAccessUrl.Text);
         }
 
         private void OnSaveSettings()
         {
             Cfg["SlackClient"]["Username"] = SlackUsername.Text;
-            Cfg["SlackClient"]["AccessUrl"] = AccessUrl?.OriginalString;
+            Cfg["SlackClient"]["AccessUrl"] = SlackAccessUrl.Text;//AccessUrl?.OriginalString;
+        }
+
+        private void SlackAccessUrl_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            AccessUrl = CreateAccessUrl(SlackAccessUrl.Text);
         }
     }
 
-    //This class serializes into the Json payload required by Slack Incoming WebHooks  
+    // This class serializes into the Json payload required by Slack Incoming WebHooks  
     public class Payload
     {
         [JsonProperty("channel")]

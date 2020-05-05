@@ -7,7 +7,7 @@ namespace Parser.StaticLibrary
 {
     public static class Logger
     {
-        public static readonly string LogPath = @Directory.GetCurrentDirectory() + "\\log.txt";
+        public static readonly string LogPath = App.AppPath + "\\log.txt";
         public static readonly UTF8Encoding Encoding = new UTF8Encoding(false);
 
         public static void WriteLine(string InString, bool InbAddSeperators = false)

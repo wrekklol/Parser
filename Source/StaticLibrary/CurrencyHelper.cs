@@ -12,7 +12,7 @@ namespace Parser.StaticLibrary
     public static class CurrencyHelper
     {
         public static Dictionary<string, GameItem> ItemBases { get; set; } = new Dictionary<string, GameItem>();
-        public static string ItemBasesPath { get; } = @Directory.GetCurrentDirectory() + "\\ItemBases.json";
+        public static string ItemBasesPath { get; } = App.AppPath + "\\ItemBases.json";
 
 
 

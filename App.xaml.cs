@@ -13,6 +13,22 @@ namespace Parser
     /// </summary>
     public partial class App : Application
     {
+        public static string AppPath
+        {
+            get
+            {
+                if (_AppPath == null)
+                    return _AppPath = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+
+                return _AppPath;
+            }
+            set
+            {
+                _AppPath = value;
+            }
+        }
+        private static string _AppPath;
+
         public static WindowPlace WindowPlace { get; private set; }
         public static SettingsWindow SettingsWindow { get; private set; }
         public static ParserDebug PDebug { get; private set; }
@@ -89,6 +105,7 @@ namespace Parser
                     }
                 }
 
+                // Parse log
                 PoELogParser.ReadLog();
                 List<LogEntry> LogEntries = LogParser.LogEntries;
 

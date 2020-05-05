@@ -14,7 +14,6 @@ namespace Parser
         {
 #if DEBUG
             ParserSettings.OnAddSettings += OnAddSettings;
-            ParserSettings.OnLoadSettings += OnLoadSettings;
             ParserSettings.OnSaveSettings += OnSaveSettings;
 
             NativeMethods.AllocConsole();
@@ -43,16 +42,11 @@ namespace Parser
                 FontWeight = FontWeights.ExtraBold,
                 FontStyle = FontStyles.Normal,
                 FontSize = 14,
-                IsChecked = bShouldGetCurrency
+                IsChecked = bool.Parse(GetConfig("Debug", "ShouldFetchCurrency", bShouldGetCurrency.ToString()))
             });
             FetchCurrencyDebug.Click += (sender, e) => { bShouldGetCurrency = FetchCurrencyDebug.IsChecked ?? false; };
         }
 
-        private void OnLoadSettings() 
-        {
-            if (GetConfig(out string ShouldFetchCurrency, "Debug", "ShouldFetchCurrency"))
-                FetchCurrencyDebug.IsChecked = bool.Parse(ShouldFetchCurrency);
-        }
         private void OnSaveSettings() 
         {
             Cfg["Debug"]["ShouldFetchCurrency"] = FetchCurrencyDebug.IsChecked.ToString();
