@@ -8,6 +8,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
+using static Parser.StaticLibrary.Config;
+
 namespace Parser
 {
     public partial class MainWindow : Window
@@ -16,23 +18,30 @@ namespace Parser
         {
             InitializeComponent();
 
-            //((App)Application.Current).WindowPlace.Register(this);
-            App.WindowPlace.Register(this);
-
             if (App.PDebug.bShouldGetCurrency)
                 MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues).ConfigureAwait(false);
 
             Loaded += MainWindow_Loaded;
+            Closing += MainWindow_Closing;
             LogParser.OnNewLogEntry += AddListLogEntry;
 
             MouseDown += (sender, e) => { LogEntries.SelectedItem = null; };
 
             VersionText.Header = $"v{Assembly.GetExecutingAssembly().GetName().Version}";
+
+            Point Pos = Point.Parse(GetConfig("Parser", "MainWindowPos", "0,0"));
+            Left = Pos.X;
+            Top = Pos.Y;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             ParserSettings.AddSettings();
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Cfg["Parser"]["MainWindowPos"] = new Point(Left, Top).ConvertToString();
         }
 
         private void OnGetCurrencyValues(string InData)

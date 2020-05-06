@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
 using Newtonsoft.Json;
 using Parser.StaticLibrary;
-using RestoreWindowPlace;
 
 namespace Parser
 {
@@ -29,7 +29,6 @@ namespace Parser
         }
         private static string _AppPath;
 
-        public static WindowPlace WindowPlace { get; private set; }
         public static SettingsWindow SettingsWindow { get; private set; }
         public static ParserDebug PDebug { get; private set; }
         public static SlackClient Slack { get; private set; }
@@ -42,7 +41,6 @@ namespace Parser
 
         public App()
         {
-            WindowPlace = new WindowPlace("placement.config");
             SettingsWindow = new SettingsWindow();
             PDebug = new ParserDebug();
             Slack = new SlackClient();
@@ -55,6 +53,8 @@ namespace Parser
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            File.WriteAllText(AppPath + "\\Output.json", "[]");
 
             List<string> args = e.Args.ToList();
             //args.Add("-n");
@@ -124,17 +124,11 @@ namespace Parser
                     }
                 }
 
-
                 var ArgsJson = JsonConvert.SerializeObject(LogEntries, Formatting.Indented);
-                InputHelper.SetClipboardText(ArgsJson);
-                Logger.WriteLine(ArgsJson);
-            }
-        }
+                File.WriteAllText(AppPath + "\\Output.json", ArgsJson);
 
-        protected override void OnExit(ExitEventArgs e)
-        {
-            base.OnExit(e);
-            WindowPlace.Save();
+                Application.Current.Shutdown();
+            }
         }
     }
 }

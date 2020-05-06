@@ -68,7 +68,7 @@ namespace Parser
         private void OnAddSettings()
         {
             SlackUsername = ParserSettings.AddSetting<SettingsTextBox>("SlackUsername", new SettingsTextBox("Slack Username: ", GetConfig("SlackClient", "Username", "U011432SY95")));
-            SlackAccessUrl = ParserSettings.AddSetting<SettingsTextBox>("SlackAccessUrl", new SettingsTextBox("Slack AccessUrl: ", GetConfig("SlackClient", "AccessUrl")));
+            SlackAccessUrl = ParserSettings.AddSetting<SettingsTextBox>("SlackAccessUrl", new SettingsTextBox("Slack AccessUrl: ", GetConfig("SlackClient", "AccessUrl", "")));
             SlackAccessUrl._TextBox.TextChanged += SlackAccessUrl_TextChanged;
         }
 

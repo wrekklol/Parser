@@ -1,6 +1,8 @@
 ﻿using Parser.StaticLibrary;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Converters;
+using System.Windows.Markup;
 using System.Windows.Media;
 using static Parser.StaticLibrary.Config;
 
@@ -16,11 +18,12 @@ namespace Parser
             ParserSettings.OnAddSettings += OnAddSettings;
             ParserSettings.OnSaveSettings += OnSaveSettings;
 
-            NativeMethods.AllocConsole();
+            Rect Pos = Rect.Parse(GetConfig("Debug", "ConsolePos", "0,0,1000,500"));
 
-            //bShouldGetCurrency = false;
-            if (GetConfig(out string ShouldFetchCurrency, "Debug", "ShouldFetchCurrency"))
-                bShouldGetCurrency = bool.Parse(ShouldFetchCurrency);
+            NativeMethods.AllocConsole();
+            NativeMethods.MoveWindow(NativeMethods.GetConsoleWindow(), (int)Pos.X, (int)Pos.Y, (int)Pos.Width, (int)Pos.Height, true);
+
+            bShouldGetCurrency = bool.Parse(GetConfig("Debug", "ShouldFetchCurrency", bShouldGetCurrency.ToString()));
 #endif
 
 
@@ -51,6 +54,7 @@ namespace Parser
         private void OnSaveSettings() 
         {
             Cfg["Debug"]["ShouldFetchCurrency"] = FetchCurrencyDebug.IsChecked.ToString();
+            Cfg["Debug"]["ConsolePos"] = NativeMethods.GetWindowRect(NativeMethods.GetConsoleWindow()).ToString();
         }
 
         private CheckBox FetchCurrencyDebug { get; set; }

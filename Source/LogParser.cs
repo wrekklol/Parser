@@ -18,16 +18,17 @@ namespace Parser
 {
     public class LogParser
     {
-        public static int PARSENUM { get; set; } = 20; // Num of log entries to parse
-        public static int INVALIDATETIME { get; set; } = 60; // How many seconds before an entry is too "old"
+        public static int PARSENUM { get; set; } = 200000; // Num of log entries to parse
+        public static int INVALIDATETIME { get; set; } = 600000; // How many seconds before an entry is too "old"
 
         public SettingsTextBox ClientLogPathTextBox { get; set; }
         public SettingsTextBox MinPriceTextBox { get; set; }
 
-        public static string ClientLogPath { get; set; } = GetConfig("Parser", "LogPath", @"C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt"); //= Cfg["Parser"]["LogPath"];
-        public static string ParsedLogPath { get; } = App.AppPath + "\\ParsedLogs.json";
-        public static double MinPriceForNotify { get; set; } = double.Parse(GetConfig("Parser", "MinPriceForNotify", "10")); //= double.Parse(Cfg["Parser"]["MinPriceForNotify"]); // How many chaos worth for notify
+        public static string ClientLogPath { get; set; } = GetConfig("Parser", "LogPath", @"C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt");
+        public static double MinPriceForNotify { get; set; } = double.Parse(GetConfig("Parser", "MinPriceForNotify", "10")); // How many chaos worth for notify
 
+        public static string ParsedLogPath { get; } = App.AppPath + "\\ParsedLogs.json";
+        public static List<string> ParsedLogEntries { get; private set; } = MiscLibrary.ReadFromJsonFile<List<string>>(ParsedLogPath);
         public static List<string> RawLogEntries { get; private set; } = new List<string>();
         public static List<LogEntry> LogEntries { get; private set; } = new List<LogEntry>();
         public static Dictionary<GameCurrency, double> CurrencyValues { get; } = new Dictionary<GameCurrency, double>() { { GameCurrency.ChaosOrb, 1 }, { GameCurrency.UnknownCurrency, 0 } };
@@ -39,23 +40,27 @@ namespace Parser
         public LogParser()
         {
             ParserSettings.OnAddSettings += OnAddSettings;
-            ParserSettings.OnLoadSettings += OnLoadSettings;
             ParserSettings.OnSaveSettings += OnSaveSettings;
 
-            Task.Run(async () =>
+            if (App.bMainWindowInitialized)
             {
-                while (true)
+                Task.Run(async () =>
                 {
-                    if (App.bMainWindowInitialized && File.Exists(@ClientLogPath))
-                        ReadLog();
+                    while (true)
+                    {
+                        if (App.bMainWindowInitialized && File.Exists(@ClientLogPath))
+                            ReadLog();
 
-                    await Task.Delay(100).ConfigureAwait(false);
-                }
-            });
+                        await Task.Delay(500).ConfigureAwait(false);
+                    }
+                });
+            }
         }
 
         public void ReadLog()
         {
+            LogEntries = new List<LogEntry>();
+
             using StreamReader LogReader = new StreamReader(File.Open(@ClientLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), true);
             LogReader.BaseStream.Seek(0, SeekOrigin.End);
 
@@ -72,15 +77,19 @@ namespace Parser
                     i++;
             }
 
-            string str = LogReader.ReadToEnd();
+            string Log = LogReader.ReadToEnd();
             RawLogEntries = new List<string>
             (
-                str
+                Log
                 .Replace("\r", "", StringComparison.InvariantCultureIgnoreCase)
                 .Split('\n')
                 .Where(s => !string.IsNullOrWhiteSpace(s) && s.IndexOf("acf", 20, 20, StringComparison.Ordinal) != -1)
+                .Except(ParsedLogEntries)
                 .Distinct()
             );
+
+            ParsedLogEntries.AddRange(RawLogEntries);
+            MiscLibrary.WriteToJsonFile(ParsedLogPath, ParsedLogEntries);
             LogReader.Close();
 
             ParseLog();
@@ -93,15 +102,17 @@ namespace Parser
 
             foreach (string RawLogEntry in RawLogEntries)
             {
-                string[] EntryData = RawLogEntry.Split(' ', 8); //todo: rename str
+                string[] EntryData = RawLogEntry.Split(' ', 8);
+                DateTime EntryTime = DateTime.Parse(EntryData[0] + " " + EntryData[1], null, DateTimeStyles.AssumeLocal);
+
+                if (EntryData.Length <= 7 || (DateTime.Now - EntryTime).TotalSeconds > INVALIDATETIME)
+                    continue;
+
                 LogEntry LogEntry = new LogEntry
                 {
-                    LogTime = DateTime.Parse(EntryData[0] + " " + EntryData[1], null, DateTimeStyles.AssumeLocal),
+                    LogTime = EntryTime,
                     Raw = RawLogEntry
                 };
-
-                if (EntryData.Length <= 7 || (DateTime.Now - LogEntry.LogTime).TotalSeconds > INVALIDATETIME || LogEntries.Contains(LogEntry))
-                    continue;
 
                 string LogMessage = EntryData[7];
                 if (LogMessage.StartsWith("@From", StringComparison.InvariantCultureIgnoreCase))
@@ -168,32 +179,10 @@ namespace Parser
             MinPriceTextBox._TextBox.TextChanged += MinPriceTextBox_TextChanged;
         }
 
-        protected void OnLoadSettings()
-        {
-            if (!File.Exists(ParsedLogPath) || new FileInfo(ParsedLogPath).Length == 0)
-                return;
-
-            using StreamReader r = new StreamReader(ParsedLogPath);
-            List<string> LoadedEntries = JsonConvert.DeserializeObject<List<string>>(r.ReadToEnd());
-
-            foreach (string Entry in LoadedEntries)
-                LogEntries.Add(new LogEntry() { Raw = Entry }); //todo: define var which holds the loaded entries, and compare them with RawLogEntries in the ReadLog func
-        }
-
         protected void OnSaveSettings()
         {
             Cfg["Parser"]["LogPath"] = ClientLogPathTextBox.Text;
             Cfg["Parser"]["MinPriceForNotify"] = MinPriceTextBox.Text;
-
-            if (RawLogEntries.Count > PARSENUM)
-                File.WriteAllText(ParsedLogPath, string.Empty);
-
-            JsonSerializer s = new JsonSerializer();
-            s.Formatting = Formatting.Indented;
-
-            using StreamWriter sw = new StreamWriter(ParsedLogPath);
-            using JsonWriter jw = new JsonTextWriter(sw);
-            s.Serialize(jw, RawLogEntries);
         }
 
         private void ClientLogPathTextBox_TextChanged(object sender, TextChangedEventArgs e)

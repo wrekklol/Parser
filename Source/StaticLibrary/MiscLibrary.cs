@@ -11,6 +11,9 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Diagnostics;
 using System.Text;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Converters;
 
 namespace Parser.StaticLibrary
 {
@@ -73,6 +76,40 @@ namespace Parser.StaticLibrary
                 return Buff.ToString();
 
             return "";
+        }
+
+
+
+        public static string ConvertToString(this Rect r)
+        {
+            return new RectValueSerializer().ConvertToString(r, null);
+        }
+
+        public static string ConvertToString(this System.Windows.Point p)
+        {
+            return new PointValueSerializer().ConvertToString(p, null);
+        }
+
+
+
+        public static T ConvertTo<T>(this object value)
+        {
+            if (value is T variable) return variable;
+
+            try
+            {
+                //Handling Nullable types i.e, int?, double?, bool? .. etc
+                if (Nullable.GetUnderlyingType(typeof(T)) != null)
+                {
+                    return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
+                }
+
+                return (T)Convert.ChangeType(value, typeof(T));
+            }
+            catch (Exception)
+            {
+                return default(T);
+            }
         }
 
 
@@ -172,6 +209,9 @@ namespace Parser.StaticLibrary
         /// <param name="append">If false the file will be overwritten if it already exists. If true the contents will be appended to the file.</param>
         public static void WriteToJsonFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
         {
+            if (!File.Exists(filePath))
+                File.Create(filePath).Dispose();
+
             TextWriter writer = null;
             try
             {
@@ -195,12 +235,16 @@ namespace Parser.StaticLibrary
         /// <returns>Returns a new instance of the object read from the Json file.</returns>
         public static T ReadFromJsonFile<T>(string filePath) where T : new()
         {
+            if (!File.Exists(filePath))
+                return default;
+
             TextReader reader = null;
             try
             {
                 reader = new StreamReader(filePath);
                 var fileContents = reader.ReadToEnd();
-                return JsonConvert.DeserializeObject<T>(fileContents);
+                T retval = JsonConvert.DeserializeObject<T>(fileContents);
+                return retval != null ? retval : new T();
             }
             finally
             {

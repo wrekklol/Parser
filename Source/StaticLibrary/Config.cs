@@ -1,5 +1,6 @@
 ﻿using IniParser;
 using IniParser.Model;
+using System;
 using System.IO;
 
 namespace Parser.StaticLibrary
@@ -73,19 +74,19 @@ namespace Parser.StaticLibrary
             CfgParser.WriteFile(CfgPath, Cfg);
         }
 
-        public static bool GetConfig(out string OutString, string InCategory, string InProperty, string InDefaultValue = "")
+        public static bool GetConfig<T>(out T OutProperty, string InSection, string InProperty, T InDefaultValue = default)
         {
-            string c = Cfg[InCategory][InProperty];
+            string c = Cfg[InSection][InProperty];
             bool b = string.IsNullOrEmpty(c);
-            OutString = b ? InDefaultValue : c;
 
+            OutProperty = b ? InDefaultValue : c.ConvertTo<T>();
             return !b;
         }
 
-        public static string GetConfig(string InCategory, string InProperty, string InDefaultValue = "")
+        public static T GetConfig<T>(string InSection, string InProperty, T InDefaultValue = default)
         {
-            string c = Cfg[InCategory][InProperty];
-            return string.IsNullOrEmpty(Cfg[InCategory][InProperty]) ? InDefaultValue : c;
+            string c = Cfg[InSection][InProperty];
+            return string.IsNullOrEmpty(c) ? InDefaultValue : c.ConvertTo<T>();
         }
     }
 }

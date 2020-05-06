@@ -14,7 +14,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Parser"
         mc:Ignorable="d"
-        Title="Settings" Height="450" Width="800" SizeToContent="WidthAndHeight" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterOwner">
+        Title="Settings" Height="450" Width="800" SizeToContent="WidthAndHeight" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="Manual">
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto" MaxWidth="800" MaxHeight="450">
             <StackPanel x:Name="SettingsPanel">
