@@ -236,7 +236,7 @@ namespace Parser.StaticLibrary
         public static T ReadFromJsonFile<T>(string filePath) where T : new()
         {
             if (!File.Exists(filePath))
-                return default;
+                return new T();
 
             TextReader reader = null;
             try

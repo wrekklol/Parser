@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -91,6 +92,15 @@ namespace Parser
                     Args.Add(ArgName, ArgParams);
                 }
 
+                SortedDictionary<string, string> ArgHelp = new SortedDictionary<string, string>()
+                {
+                    { "-n", "    --Number of log entries to parse (from end).\n        ---Usage: \"-n 20\"." },
+                    { "-t", "    --Time since log entries to be invalidated.\n        ---Usage: \"-t 60\"." },
+                    { "-fetch", "    --Fetch currency data from poe.ninja. Optionally parse log after fetching.\n        ---Usage: \"-fetch [parse]\"." },
+
+                    { "-filter", "    --Filter parsed log by log type. Optionally filter by multiple types.\n        ---Usage: \"-filter 7 [0 1 2 ...]\"." },
+                };
+
                 // Pre-processing
                 foreach (var Arg in Args)
                 {
@@ -102,6 +112,16 @@ namespace Parser
                         case "t":
                             LogParser.INVALIDATETIME = int.Parse(Arg.Value[0]);
                             break;
+                        case "fetch":
+                            CurrencyHelper.FetchCurrency(true);
+                            if (Arg.Value[0] == "parse") break;
+                            else return;
+                        case "help":
+                        case "h":
+                            Console.WriteLine("\n");
+                            foreach (var h in ArgHelp)
+                                Console.WriteLine($"{h.Key}\n{h.Value}\n");
+                            return;
                     }
                 }
 

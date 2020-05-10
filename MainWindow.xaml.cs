@@ -3,6 +3,7 @@ using Onova;
 using Onova.Services;
 using Parser.StaticLibrary;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,8 +19,7 @@ namespace Parser
         {
             InitializeComponent();
 
-            if (App.PDebug.bShouldGetCurrency)
-                MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues).ConfigureAwait(false);
+            CurrencyHelper.FetchCurrency();
 
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
@@ -42,28 +42,6 @@ namespace Parser
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Cfg["Parser"]["MainWindowPos"] = new Point(Left, Top).ConvertToString();
-        }
-
-        private void OnGetCurrencyValues(string InData)
-        {
-            //todo: get values every hour instead
-            JObject Values = JObject.Parse(InData);
-            foreach (var x in Values)
-            {
-                if (x.Key != "lines")
-                    continue;
-
-                Logger.WriteLine("Started fetching currency values", true);
-                foreach (var y in x.Value.AsJEnumerable())
-                {
-                    var CurrencyType = y.Value<string>("currencyTypeName");
-                    var CurrencyValue = y.Value<JToken>("receive").Value<double>("value");
-                    LogParser.CurrencyValues.Add(Enum.Parse<GameCurrency>(CurrencyHelper.GetTrimmedCurrencyName(CurrencyType), true), CurrencyValue);
-                    Logger.WriteLine($"{Enum.Parse<GameCurrency>(CurrencyHelper.GetTrimmedCurrencyName(CurrencyType))} => {CurrencyValue}");
-                }
-                LogParser.CurrencyValues.Add(GameCurrency.UnknownCurrency, 0);
-                Logger.WriteLine("Done fetching currency values", true);
-            }
         }
 
 
