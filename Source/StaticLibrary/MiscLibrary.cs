@@ -14,6 +14,7 @@ using System.Text;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Converters;
+using System.Collections.Generic;
 
 namespace Parser.StaticLibrary
 {

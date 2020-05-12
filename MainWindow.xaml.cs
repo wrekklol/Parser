@@ -8,13 +8,17 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-
+using System.Windows.Media.Effects;
 using static Parser.StaticLibrary.Config;
 
 namespace Parser
 {
     public partial class MainWindow : Window
     {
+        public static event Action OnMainWindowInit;
+
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -36,6 +40,7 @@ namespace Parser
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            OnMainWindowInit?.Invoke();
             ParserSettings.AddSettings();
         }
 
@@ -48,32 +53,57 @@ namespace Parser
 
         public void AddListLogEntry(LogEntry InLogEntry)
         {
-            ItemCollection LogList = LogEntries.Items;
-            if (InLogEntry != null && !LogList.Contains(InLogEntry) && InLogEntry.IsPrintableLogType())
+            if (App.SettingsWindow.Dispatcher.CheckAccess())
             {
-                ParserTextBlock l = new ParserTextBlock
+                ItemCollection LogList = LogEntries.Items;
+                if (InLogEntry != null && !LogList.Contains(InLogEntry) && InLogEntry.IsPrintableLogType())
                 {
-                    Text = InLogEntry.ToString(),
-                    FontWeight = FontWeights.Heavy,
-                    FontStyle = FontStyles.Normal,
-                    FontFamily = new FontFamily("Roboto"),
-                    FontSize = 14,
-                    //Content = InLogEntry.ToString(),
-                    LogData = InLogEntry,
-                    AllowDrop = false,
-                    Focusable = false,
-                    IsHitTestVisible = false,
-                    //IsTabStop = false,
-                    //AcceptsReturn = false,
-                    //AcceptsTab = false,
-                    MinWidth = 780
-                };
+                    double ExaltedWorth = CurrencyHelper.GetCurrencyWorth(GameCurrency.ExaltedOrb, 1);
+                    double CurrencyWorth = InLogEntry.IsTradeMessage() ? CurrencyHelper.GetCurrencyWorth(InLogEntry.Offer) : -1;
 
-                LogList.Add(l);
+                    FontWeight fw = FontWeights.Normal;
+                    double fs = 14;
 
-                if (InLogEntry.IsTradeMessage() && CurrencyHelper.GetCurrencyWorth(InLogEntry.Offer) >= LogParser.MinPriceForNotify)
-                    App.Slack.PostMessage(InLogEntry.ToString(), "Notifier", App.Slack.SlackUsername.Text);
+                    switch (InLogEntry.LogEntryType)
+                    {
+                        case LogType.Insignificant:
+                        case LogType.AfkNotification:
+                        case LogType.EnterHideoutNotification:
+                        case LogType.LeaveHideoutNotification:
+                        case LogType.TradeAcceptedNotification:
+                        case LogType.TradeCancelledNotification:
+                        case LogType.NormalMessage:
+                            fw = FontWeights.ExtraLight;
+                            fs = 10;
+                            break;
+                        case LogType.TradeMessage:
+                            fw = FontWeights.Bold;
+                            fs = Math.Clamp(6 * Math.Log10(CurrencyWorth / ExaltedWorth) + 18, 12, 24);
+                            break;
+                    }
+
+                    ParserTextBlock l = new ParserTextBlock
+                    {
+                        Text = InLogEntry.ToString(),
+                        FontWeight = fw,
+                        FontStyle = FontStyles.Normal,
+                        FontFamily = new FontFamily("Roboto"),
+                        FontSize = fs,
+                        LogData = InLogEntry,
+                        AllowDrop = false,
+                        Focusable = false,
+                        IsHitTestVisible = false,
+                        MinWidth = 780
+                    };
+
+                    LogList.Add(l);
+
+                    if (CurrencyWorth >= LogParser.MinPriceForNotify)
+                        App.Slack.PostMessage(InLogEntry.ToString(), "Notifier", App.Slack.SlackUsername.Text);
+                }
             }
+            else
+                App.SettingsWindow.Dispatcher.Invoke(() => AddListLogEntry(InLogEntry));
         }
 
         private void OpenSettings_Click(object sender, RoutedEventArgs e)

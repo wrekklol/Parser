@@ -50,12 +50,12 @@ namespace Parser.StaticLibrary
 
         public static double GetCurrencyWorth(GameCurrency InCurrencyType, double InAmountOfCurrency)
         {
-            return LogParser.CurrencyValues[InCurrencyType] * InAmountOfCurrency;
+            return LogParser.CurrencyValues.TryGetValue(InCurrencyType, out double value) ? value * InAmountOfCurrency : 0;
         }
 
         public static double GetCurrencyWorth(GameTradeOffer InTradeOffer)
         {
-            return LogParser.CurrencyValues[InTradeOffer.CurrencyType] * InTradeOffer.CurrencyAmount;
+            return InTradeOffer != null ? GetCurrencyWorth(InTradeOffer.CurrencyType, InTradeOffer.CurrencyAmount) : 0;
         }
 
         public static string GetTrimmedCurrencyName(string InCurrencyName)

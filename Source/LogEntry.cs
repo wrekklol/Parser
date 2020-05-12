@@ -64,17 +64,17 @@ namespace Parser
         //    return HashCode.Combine(Raw);
         //}
 
-        //public override string ToString()
-        //{
-        //    var TimeDisplay = $"[{LogTime.TimeOfDay}] ";
-        //    return LogEntryType switch
-        //    {
-        //        LogType.AfkNotification => $"{TimeDisplay}You are AFK.",
-        //        LogType.NormalMessage => $"{TimeDisplay}{PlayerName}: {Message}",
-        //        LogType.TradeMessage =>
-        //        $"{Offer.CurrencyAmount.ToString(CultureInfo.InvariantCulture)} {EnumHelper<GameCurrency>.GetDisplayValue(Offer.CurrencyType)} - {Offer.Item} ({Offer.League})",
-        //        _ => ""
-        //    };
-        //}
+        public override string ToString()
+        {
+            var TimeDisplay = $"[{LogTime.TimeOfDay}] ";
+            return LogEntryType switch
+            {
+                LogType.AfkNotification => $"{TimeDisplay}You are AFK.",
+                LogType.NormalMessage => $"{TimeDisplay}{PlayerName}: {Message}",
+                LogType.TradeMessage =>
+                $"{Offer.CurrencyAmount.ToString(CultureInfo.InvariantCulture)} {EnumHelper<GameCurrency>.GetDisplayValue(Offer.CurrencyType)} - {Offer.Item} ({Offer.League})",
+                _ => ""
+            };
+        }
     }
 }

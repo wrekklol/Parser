@@ -18,8 +18,8 @@ namespace Parser
 {
     public class LogParser
     {
-        public static int PARSENUM { get; set; } = 200000; // Num of log entries to parse
-        public static int INVALIDATETIME { get; set; } = 600000; // How many seconds before an entry is too "old"
+        public static int PARSENUM { get; set; } = 20; // Num of log entries to parse
+        public static int INVALIDATETIME { get; set; } = 60; // How many seconds before an entry is too "old"
 
         public SettingsTextBox ClientLogPathTextBox { get; set; }
         public SettingsTextBox MinPriceTextBox { get; set; }
@@ -41,20 +41,21 @@ namespace Parser
         {
             ParserSettings.OnAddSettings += OnAddSettings;
             ParserSettings.OnSaveSettings += OnSaveSettings;
+            MainWindow.OnMainWindowInit += OnMainWindowInit;
+        }
 
-            if (App.bMainWindowInitialized)
+        private void OnMainWindowInit()
+        {
+            Task.Run(async () =>
             {
-                Task.Run(async () =>
+                while (true)
                 {
-                    while (true)
-                    {
-                        if (App.bMainWindowInitialized && File.Exists(@ClientLogPath))
-                            ReadLog();
+                    if (File.Exists(@ClientLogPath))
+                        ReadLog();
 
-                        await Task.Delay(500).ConfigureAwait(false);
-                    }
-                });
-            }
+                    await Task.Delay(500).ConfigureAwait(false);
+                }
+            });
         }
 
         public void ReadLog()

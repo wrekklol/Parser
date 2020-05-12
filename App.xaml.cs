@@ -35,7 +35,6 @@ namespace Parser
         public static SlackClient Slack { get; private set; }
         public static LogParser PoELogParser { get; private set; }
 
-        public static bool bMainWindowInitialized { get; private set; }
         public static Dictionary<string, List<string>> Args { get; private set; }
 
 
@@ -47,7 +46,6 @@ namespace Parser
             Slack = new SlackClient();
             PoELogParser = new LogParser();
 
-            bMainWindowInitialized = false;
             Args = new Dictionary<string, List<string>>();
         }
 
@@ -69,10 +67,14 @@ namespace Parser
             {
                 MainWindow = new MainWindow();
                 MainWindow.Show();
-                bMainWindowInitialized = true;
             }
             else
             {
+                //Rect Pos = Rect.Parse(GetConfig("Debug", "ConsolePos", "0,0,1000,500"));
+
+                NativeMethods.AllocConsole(); //todo: should attach console to "-pid" command(needs to be created first obviously).
+                //NativeMethods.MoveWindow(NativeMethods.GetConsoleWindow(), (int)Pos.X, (int)Pos.Y, (int)Pos.Width, (int)Pos.Height, true);
+
                 for (int i = 0; i < args.Count; i++)
                 {
                     if (args[i][0] != '-')

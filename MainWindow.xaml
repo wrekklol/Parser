@@ -16,7 +16,7 @@
         mc:Ignorable="d"
         Title="Parser" Height="450" Width="800" ResizeMode="NoResize" SizeToContent="WidthAndHeight" WindowStartupLocation="Manual">
     <Grid>
-        <ListBox Margin="10,33,10,47" x:Name="LogEntries" Width="780"/>
+        <ListBox Margin="10,33,10,10" x:Name="LogEntries" Width="780" Background="#33000000" BorderBrush="#7F000000" BorderThickness="1,1,1,1"/>
         <Menu Margin="0,0,0,406">
             <MenuItem Header="_File" Height="28" Background="{DynamicResource MaterialDesignToolBarBackground}" FontFamily="Roboto">
                 <MenuItem Header="_Settings" Click="OpenSettings_Click" FontFamily="Roboto"/>

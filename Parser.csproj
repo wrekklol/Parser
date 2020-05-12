@@ -10,6 +10,7 @@
 		<Authors>Bastian Jørgensen</Authors>
 		<Copyright>Copyright Bastian Jørgensen 2020</Copyright>
 		<Platforms>AnyCPU;x64</Platforms>
+		<Configurations>Debug;Release;ReleaseNoUpload;ReleaseGithub</Configurations>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -35,7 +36,23 @@
 	  <OutputPath>bin\Release\Parser\</OutputPath>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGithub|AnyCPU'">
+	  <OutputPath>bin\Release\Parser\</OutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUpload|AnyCPU'">
+	  <OutputPath>bin\Release\Parser\</OutputPath>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <OutputPath>bin\Release\Parser\</OutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGithub|x64'">
+	  <OutputPath>bin\Release\Parser\</OutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUpload|x64'">
 	  <OutputPath>bin\Release\Parser\</OutputPath>
 	</PropertyGroup>
 
@@ -74,7 +91,7 @@
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if $(ConfigurationName) == Debug goto :debug&#xD;&#xA;&#xD;&#xA;:release&#xD;&#xA;powershell -Version 5.1 -Mta -NoExit -WindowStyle Maximized -ExecutionPolicy Unrestricted $(ProjectDir)Tools\zipper.ps1 -projectDir $(ProjectDir) -targetDir $(TargetDir) -targetPath $(TargetPath)&#xD;&#xA;goto :exit&#xD;&#xA;&#xD;&#xA;:debug&#xD;&#xA;:exit" />
+    <Exec Command="if $(ConfigurationName) == ReleaseGithub goto :release&#xD;&#xA;goto :exit&#xD;&#xA;&#xD;&#xA;:release&#xD;&#xA;powershell -Version 5.1 -Mta -NoExit -WindowStyle Maximized -ExecutionPolicy Unrestricted $(ProjectDir)Tools\zipper.ps1 -projectDir $(ProjectDir) -targetDir $(TargetDir) -targetPath $(TargetPath)&#xD;&#xA;&#xD;&#xA;:exit" />
 	</Target>
 
   <Target Name="BeforeBuild">
