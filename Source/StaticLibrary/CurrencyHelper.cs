@@ -99,7 +99,7 @@ namespace Parser.StaticLibrary
 
                 if (bShouldFetch || InbForce)
                 {
-                    await MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Delirium&type=Currency", OnGetCurrencyValues).ConfigureAwait(false);
+                    await MiscLibrary.GetAsync("https://poe.ninja/api/data/currencyoverview?league=Ultimatum&type=Currency", OnGetCurrencyValues).ConfigureAwait(false);
                     Dictionary<string, dynamic> CurrentFetch = new Dictionary<string, dynamic>()
                     {
                         { "FetchTime", DateTime.Now },
@@ -128,8 +128,12 @@ namespace Parser.StaticLibrary
                 {
                     var CurrencyType = y.Value<string>("currencyTypeName");
                     var CurrencyValue = y.Value<JToken>("receive").Value<double>("value");
-                    LogParser.CurrencyValues.Add(Enum.Parse<GameCurrency>(CurrencyHelper.GetTrimmedCurrencyName(CurrencyType), true), CurrencyValue);
-                    Logger.WriteLine($"{Enum.Parse<GameCurrency>(CurrencyHelper.GetTrimmedCurrencyName(CurrencyType))} => {CurrencyValue}");
+
+                    if (!Enum.TryParse(CurrencyHelper.GetTrimmedCurrencyName(CurrencyType), true, out GameCurrency Currency))
+                        continue;
+
+                    LogParser.CurrencyValues.Add(Currency, CurrencyValue);
+                    Logger.WriteLine($"{Currency} => {CurrencyValue}");
                 }
                 Logger.WriteLine("Done fetching currency values", true);
             }

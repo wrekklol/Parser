@@ -23,9 +23,11 @@ namespace Parser
 
         public SettingsTextBox ClientLogPathTextBox { get; set; }
         public SettingsTextBox MinPriceTextBox { get; set; }
+        public SettingsTextBox ThreeLetterTokenTextBox { get; set; }
 
         public static string ClientLogPath { get; set; } = GetConfig("Parser", "LogPath", @"C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt");
         public static double MinPriceForNotify { get; set; } = double.Parse(GetConfig("Parser", "MinPriceForNotify", "10")); // How many chaos worth for notify
+        public static string ThreeLetterToken { get; set; } = GetConfig("Parser", "ThreeLetterToken", "bad");
 
         public static string ParsedLogPath { get; } = App.AppPath + "\\ParsedLogs.json";
         public static List<string> ParsedLogEntries { get; private set; } = MiscLibrary.ReadFromJsonFile<List<string>>(ParsedLogPath);
@@ -60,6 +62,9 @@ namespace Parser
 
         public void ReadLog()
         {
+            if (string.IsNullOrEmpty(ThreeLetterToken))
+                return;
+
             LogEntries = new List<LogEntry>();
 
             using StreamReader LogReader = new StreamReader(File.Open(@ClientLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), true);
@@ -84,7 +89,7 @@ namespace Parser
                 Log
                 .Replace("\r", "", StringComparison.InvariantCultureIgnoreCase)
                 .Split('\n')
-                .Where(s => !string.IsNullOrWhiteSpace(s) && s.IndexOf("acf", 20, 20, StringComparison.Ordinal) != -1)
+                .Where(s => !string.IsNullOrWhiteSpace(s) && s.IndexOf(ThreeLetterToken, 20, 20, StringComparison.Ordinal) != -1)
                 .Except(ParsedLogEntries)
                 .Distinct()
             );
@@ -178,12 +183,17 @@ namespace Parser
             MinPriceTextBox.PreviewTextInput += MinPriceTextBox_PreviewTextInput;
             DataObject.AddPastingHandler(MinPriceTextBox, MinPriceTextBox_OnPaste);
             MinPriceTextBox._TextBox.TextChanged += MinPriceTextBox_TextChanged;
+
+            // Three letters between time and info bracket. ie. 2019/05/13 11:29:11 239245222 *****acf***** [INFO Client 19551]
+            ThreeLetterTokenTextBox = ParserSettings.AddSetting<SettingsTextBox>("ThreeLetterToken", new SettingsTextBox("Three Letter Token: ", ThreeLetterToken));
+            ThreeLetterTokenTextBox._TextBox.TextChanged += ThreeLetterTokenTextBox_TextChanged;
         }
 
         protected void OnSaveSettings()
         {
             Cfg["Parser"]["LogPath"] = ClientLogPathTextBox.Text;
             Cfg["Parser"]["MinPriceForNotify"] = MinPriceTextBox.Text;
+            Cfg["Parser"]["ThreeLetterToken"] = ThreeLetterTokenTextBox.Text;
         }
 
         private void ClientLogPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -212,5 +222,11 @@ namespace Parser
         {
             MinPriceForNotify = double.Parse(MinPriceTextBox.Text);
         }
+
+        private void ThreeLetterTokenTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ThreeLetterToken = ThreeLetterTokenTextBox.Text;
+        }
+
     }
 }

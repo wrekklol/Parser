@@ -14,6 +14,10 @@ namespace Parser
         MirrorofKalandra,
         [Display(Name = "Mirror Shard")]
         MirrorShard,
+        [Display(Name = "Tempering Orb")]
+        TemperingOrb,
+        [Display(Name = "Maven's Orb")]
+        MavensOrb,
         [Display(Name = "Awakener's Orb")]
         AwakenersOrb,
         [Display(Name = "Warlord's Exalted Orb")]
