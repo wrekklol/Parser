@@ -1,0 +1,122 @@
+name: Dead Signal exact Android template bridge
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  extract-template:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download and verify official Godot 4.8-dev1 templates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p work/out work/chunks
+          curl -fsSL --retry 5 --retry-all-errors \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            https://api.github.com/repos/godotengine/godot-builds/releases/tags/4.8-dev1 \
+            -o work/release.json
+          jq -e '.assets[] | select(.name == "Godot_v4.8-dev1_export_templates.tpz")' work/release.json > work/asset.json
+          curl -fL --retry 5 --retry-all-errors \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/octet-stream' \
+            "$(jq -r '.url' work/asset.json)" \
+            -o work/templates.tpz
+          test "$(stat -c %s work/templates.tpz)" = "$(jq -r '.size' work/asset.json)"
+          digest="$(jq -r '.digest // ""' work/asset.json)"
+          if [[ "$digest" == sha256:* ]]; then
+            printf '%s  %s\n' "${digest#sha256:}" work/templates.tpz | sha256sum -c -
+          fi
+          unzip -p work/templates.tpz templates/version.txt > work/out/version.txt
+          test "$(tr -d '\r\n' < work/out/version.txt)" = '4.8.dev1'
+          unzip -p work/templates.tpz templates/android_debug.apk > work/out/android_debug.apk
+          unzip -p work/templates.tpz templates/android_release.apk > work/out/android_release.apk
+          cp work/asset.json work/out/release_asset.json
+
+          python3 - <<'PY'
+          import hashlib, json, struct, zipfile
+          from pathlib import Path
+          asset = json.loads(Path('work/asset.json').read_text())
+          report = {
+              'engine_full_version': '4.8.dev1.official.ebbf577a0',
+              'template_version': '4.8.dev1',
+              'release_tag': '4.8-dev1',
+              'source_asset_name': asset['name'],
+              'source_asset_id': asset.get('id'),
+              'source_asset_size': asset['size'],
+              'source_asset_digest': asset.get('digest'),
+              'templates': {},
+          }
+          sums = []
+          for name in ('android_debug.apk', 'android_release.apk'):
+              path = Path('work/out') / name
+              if path.stat().st_size < 1_000_000:
+                  raise SystemExit(f'{name} is unexpectedly small')
+              with zipfile.ZipFile(path) as archive:
+                  names = set(archive.namelist())
+                  required = {'AndroidManifest.xml','classes.dex','lib/arm64-v8a/libgodot_android.so'}
+                  missing = sorted(required - names)
+                  if missing:
+                      raise SystemExit(f'{name} missing {missing}')
+                  data = archive.read('lib/arm64-v8a/libgodot_android.so')[:20]
+                  if data[:4] != b'\x7fELF' or data[4] != 2:
+                      raise SystemExit(f'{name} arm64 runtime is not ELF64')
+                  machine = struct.unpack_from('<H', data, 18)[0]
+                  if machine != 183:
+                      raise SystemExit(f'{name} arm64 runtime e_machine={machine}')
+              sha = hashlib.sha256(path.read_bytes()).hexdigest()
+              report['templates'][name] = {'size': path.stat().st_size, 'sha256': sha}
+              sums.append(f'{sha}  {name}')
+          Path('work/out/template_metadata.json').write_text(json.dumps(report, indent=2, sort_keys=True) + '\n')
+          Path('work/out/SHA256SUMS').write_text('\n'.join(sums) + '\n')
+          PY
+
+          split -b 70M -d -a 3 work/out/android_debug.apk work/chunks/android_debug.apk.part-
+          split -b 70M -d -a 3 work/out/android_release.apk work/chunks/android_release.apk.part-
+
+      - name: Upload metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-4.8-dev1-android-template-metadata
+          path: |
+            work/out/version.txt
+            work/out/template_metadata.json
+            work/out/release_asset.json
+            work/out/SHA256SUMS
+          compression-level: 9
+          retention-days: 1
+      - name: Upload debug part 000
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-4.8-dev1-android-debug-part-000
+          path: work/chunks/android_debug.apk.part-000
+          compression-level: 0
+          retention-days: 1
+      - name: Upload debug part 001
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-4.8-dev1-android-debug-part-001
+          path: work/chunks/android_debug.apk.part-001
+          compression-level: 0
+          retention-days: 1
+      - name: Upload release part 000
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-4.8-dev1-android-release-part-000
+          path: work/chunks/android_release.apk.part-000
+          compression-level: 0
+          retention-days: 1
+      - name: Upload release part 001
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-4.8-dev1-android-release-part-001
+          path: work/chunks/android_release.apk.part-001
+          compression-level: 0
+          retention-days: 1
